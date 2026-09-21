@@ -29,6 +29,11 @@ spring:
             dataId: ${spring.application.name}-flow-rules
             groupId: DEFAULT_GROUP
             rule-type: flow
+  # Flyway 使用独立连接；权限探测被拒绝时，Druid 会丢弃连接并使后续迁移失败。
+  flyway:
+    url: ${spring.datasource.url}
+    user: ${spring.datasource.username}
+    password: ${spring.datasource.password}
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://${MYSQL_NOTIFY_HOST:127.0.0.1}:${MYSQL_NOTIFY_PORT:3310}/nabu_notify?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
