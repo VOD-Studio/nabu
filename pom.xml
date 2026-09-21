@@ -77,6 +77,22 @@
 
     <dependencyManagement>
         <dependencies>
+            <!--
+              显式最先导入 spring-boot-dependencies：锁定 Spring Framework 6.2.x / Boot 3.5.6 这一版本线。
+              必须排在 dubbo-bom 之前——dubbo-bom 会把 spring-webmvc/spring-web/spring-beans 的
+              管理版本设成 5.3.39（Dubbo 的 Spring5 基线），而子 pom 里靠前的 dependencyManagement 导入
+              优先级高于父 pom(spring-boot-starter-parent) 的继承管理，若不抢先声明，web 层会退化到
+              Spring5(javax.servlet)，导致 HandlerInterceptor 等 jakarta 签名实现报“不会覆盖超类型方法”。
+              dubbo-bom 仍继续负责它自己的 org.apache.dubbo:* 版本，二者不冲突。
+            -->
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>3.5.6</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
             <!-- Spring Cloud -->
             <dependency>
                 <groupId>org.springframework.cloud</groupId>

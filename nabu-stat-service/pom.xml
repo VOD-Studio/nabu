@@ -30,6 +30,16 @@
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
 
+        <!--
+          本服务以 Dubbo(Triple) 对外提供 RPC，但仍是一个 servlet web 应用：
+          暴露 server.port 上的 Spring Boot Actuator（/actuator/health 供存活探针、
+          /actuator/prometheus 供 Prometheus 抓取），这是全链路可观测的前提。
+        -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
         <!-- Redis：本模块的核心存储（String 累加 PV，HyperLogLog 近似统计 UV，ZSet 维护热门排行榜） -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

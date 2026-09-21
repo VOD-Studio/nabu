@@ -5,6 +5,7 @@ import com.xfy.nabu.api.search.dto.TopicSearchDocDTO;
 import com.xfy.nabu.common.result.PageResult;
 import com.xfy.nabu.search.domain.TopicIndexDocument;
 import com.xfy.nabu.search.repository.TopicIndexRepository;
+import com.xfy.nabu.search.service.SearchBizService;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.elasticsearch.client.elc.NativeQuery;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
