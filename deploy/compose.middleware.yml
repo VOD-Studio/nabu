@@ -162,7 +162,7 @@ services:
     ports:
       - "8001:8001"
       - "8080:8080"
-      - "8443:8443"
+      - "18443:8443"
     volumes:
       - ./data/higress:/data
     networks: [nabu-net]

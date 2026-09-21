@@ -2,6 +2,11 @@ server:
   port: 18086
 
 spring:
+  # Spring Cloud 2021+ 起：classpath 上有 nacos-config 就必须显式声明 spring.config.import，
+  # 否则启动直接失败（No spring.config.import property has been defined）。
+  # optional: 前缀 = Nacos 里还没建这个 dataId 时也不阻塞本地启动。
+  config:
+    import: optional:nacos:nabu-search-service.yaml
   application:
     name: nabu-search-service
   elasticsearch:

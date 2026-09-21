@@ -123,7 +123,7 @@ services:
     container_name: nabu-redis
     restart: unless-stopped
     ports:
-      - "6379:6379"
+      - "6380:6379"
     volumes:
       - ./data/redis:/data
     command: redis-server --appendonly yes
