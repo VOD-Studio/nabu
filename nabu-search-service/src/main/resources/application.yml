@@ -33,6 +33,8 @@ spring:
             rule-type: flow
 
 dubbo:
+  scan:
+    base-packages: com.xfy.nabu.search.dubbo
   application:
     name: ${spring.application.name}
     logger: slf4j

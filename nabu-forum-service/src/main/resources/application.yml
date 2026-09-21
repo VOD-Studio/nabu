@@ -55,6 +55,8 @@ mybatis:
     map-underscore-to-camel-case: true
 
 dubbo:
+  scan:
+    base-packages: com.xfy.nabu.forum.dubbo
   application:
     name: ${spring.application.name}
     logger: slf4j

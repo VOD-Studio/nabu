@@ -37,6 +37,8 @@ spring:
       database: 4
 
 dubbo:
+  scan:
+    base-packages: com.xfy.nabu.social.dubbo
   application:
     name: ${spring.application.name}
     logger: slf4j
