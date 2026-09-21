@@ -1,0 +1,199 @@
+# =====================================================================================
+# 基础设施层：MySQL（按域拆分独立实例）、Redis、Elasticsearch、RustFS。
+# =====================================================================================
+name: nabu
+
+services:
+
+  # ---------------------------------------------------------------------------------
+  # MySQL：每个业务域独立一个 MySQL 实例，模拟微服务"数据库私有"原则。
+  # 宿主机资源有限时，也可以改成一个 MySQL 容器 + 多个 database，
+  # 但保持独立实例更贴近真实生产隔离。
+  # ---------------------------------------------------------------------------------
+  mysql-user:
+    image: mysql:8.4
+    container_name: nabu-mysql-user
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root123456}
+      MYSQL_DATABASE: nabu_user
+      MYSQL_USER: ${MYSQL_USER_USERNAME:-nabu}
+      MYSQL_PASSWORD: ${MYSQL_USER_PASSWORD:-nabu123456}
+    ports:
+      - "3307:3306"
+    volumes:
+      - ./data/mysql-user:/var/lib/mysql
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_general_ci --default-authentication-plugin=mysql_native_password
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-root123456}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks: [nabu-net]
+
+  mysql-forum:
+    image: mysql:8.4
+    container_name: nabu-mysql-forum
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root123456}
+      MYSQL_DATABASE: nabu_forum
+      MYSQL_USER: ${MYSQL_FORUM_USERNAME:-nabu}
+      MYSQL_PASSWORD: ${MYSQL_FORUM_PASSWORD:-nabu123456}
+    ports:
+      - "3308:3306"
+    volumes:
+      - ./data/mysql-forum:/var/lib/mysql
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_general_ci --default-authentication-plugin=mysql_native_password
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-root123456}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks: [nabu-net]
+
+  mysql-notify:
+    image: mysql:8.4
+    container_name: nabu-mysql-notify
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root123456}
+      MYSQL_DATABASE: nabu_notify
+      MYSQL_USER: ${MYSQL_NOTIFY_USERNAME:-nabu}
+      MYSQL_PASSWORD: ${MYSQL_NOTIFY_PASSWORD:-nabu123456}
+    ports:
+      - "3310:3306"
+    volumes:
+      - ./data/mysql-notify:/var/lib/mysql
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_general_ci --default-authentication-plugin=mysql_native_password
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-root123456}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks: [nabu-net]
+
+  mysql-file:
+    image: mysql:8.4
+    container_name: nabu-mysql-file
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root123456}
+      MYSQL_DATABASE: nabu_file
+      MYSQL_USER: ${MYSQL_FILE_USERNAME:-nabu}
+      MYSQL_PASSWORD: ${MYSQL_FILE_PASSWORD:-nabu123456}
+    ports:
+      - "3311:3306"
+    volumes:
+      - ./data/mysql-file:/var/lib/mysql
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_general_ci --default-authentication-plugin=mysql_native_password
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-root123456}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks: [nabu-net]
+
+  mysql-moderation:
+    image: mysql:8.4
+    container_name: nabu-mysql-moderation
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root123456}
+      MYSQL_DATABASE: nabu_moderation
+      MYSQL_USER: ${MYSQL_MODERATION_USERNAME:-nabu}
+      MYSQL_PASSWORD: ${MYSQL_MODERATION_PASSWORD:-nabu123456}
+    ports:
+      - "3312:3306"
+    volumes:
+      - ./data/mysql-moderation:/var/lib/mysql
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_general_ci --default-authentication-plugin=mysql_native_password
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-root123456}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks: [nabu-net]
+
+  # ---------------------------------------------------------------------------------
+  # Redis：单实例，各服务用不同 database 编号隔离（详见各服务 application.yml 注释）。
+  # ---------------------------------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: nabu-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./data/redis:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks: [nabu-net]
+
+  # ---------------------------------------------------------------------------------
+  # Elasticsearch：单节点，用于 search-service 全文搜索。
+  # 生产环境应配置集群、安全认证与 IK 中文分词插件；此处单机部署关闭安全认证以便调试。
+  # ---------------------------------------------------------------------------------
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.18.1
+    container_name: nabu-elasticsearch
+    restart: unless-stopped
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+    volumes:
+      - ./data/elasticsearch:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:9200/_cluster/health || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+    networks: [nabu-net]
+
+  # ---------------------------------------------------------------------------------
+  # RustFS：S3 兼容对象存储，替代 MinIO/OSS。file-service 通过 AWS S3 SDK 访问。
+  # 注意：RustFS 容器内以 UID/GID 10001:10001 运行，如果绑定主机目录需要提前 chown，
+  # 这里改用 named volume 规避该权限问题（更省心，优先保证部署简单）。
+  # ---------------------------------------------------------------------------------
+  rustfs:
+    image: rustfs/rustfs:latest
+    container_name: nabu-rustfs
+    restart: unless-stopped
+    security_opt:
+      - "no-new-privileges:true"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      - RUSTFS_VOLUMES=/data/rustfs{0...3}
+      - RUSTFS_ADDRESS=0.0.0.0:9000
+      - RUSTFS_CONSOLE_ADDRESS=0.0.0.0:9001
+      - RUSTFS_CONSOLE_ENABLE=true
+      - RUSTFS_CONSOLE_CORS_ALLOWED_ORIGINS=*
+      - RUSTFS_ACCESS_KEY=${RUSTFS_ACCESS_KEY:-rustfsadmin}
+      - RUSTFS_SECRET_KEY=${RUSTFS_SECRET_KEY:-rustfsadmin}
+      - RUSTFS_OBS_LOGGER_LEVEL=info
+    volumes:
+      - rustfs-data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://127.0.0.1:9000/health || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 20s
+    networks: [nabu-net]
+
+networks:
+  nabu-net:
+    name: nabu-net
+    driver: bridge
+
+volumes:
+  rustfs-data:

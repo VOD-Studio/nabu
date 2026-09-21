@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xfy.nabu.forum.mapper.CommentMapper">
+
+    <resultMap id="CommentResultMap" type="com.xfy.nabu.forum.domain.CommentEntity">
+        <id property="id" column="id"/>
+        <result property="topicId" column="topic_id"/>
+        <result property="authorId" column="author_id"/>
+        <result property="replyToId" column="reply_to_id"/>
+        <result property="content" column="content"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+        <result property="deleted" column="deleted"/>
+    </resultMap>
+
+    <sql id="Columns">
+        id, topic_id, author_id, reply_to_id, content, created_at, updated_at, deleted
+    </sql>
+
+    <select id="selectById" resultMap="CommentResultMap">
+        select <include refid="Columns"/> from t_comment where id = #{id} and deleted = 0
+    </select>
+
+    <!--
+      分页查询某帖子下的评论列表：按时间正序（论坛帖子楼层从 1 楼往上递增的阅读习惯），
+      created_at 相同时以 id 兜底排序，保证翻页结果稳定（不会出现同一条评论跨页重复/丢失）。
+      走 V1__init_forum_tables.sql 中的联合索引 idx_topic_created (topic_id, created_at)。
+    -->
+    <select id="listByTopic" resultMap="CommentResultMap">
+        select <include refid="Columns"/> from t_comment
+        where topic_id = #{topicId} and deleted = 0
+        order by created_at asc, id asc
+        limit #{offset}, #{limit}
+    </select>
+
+    <!--
+      仅插入业务列：created_at / updated_at 由 DDL 的 DEFAULT CURRENT_TIMESTAMP 填充，
+      deleted 由 DEFAULT 0 填充，因此不显式写入，避免把 Java 侧未赋值的 null 覆盖到数据库。
+      useGeneratedKeys + keyProperty="id" 让自增主键回填到实体，供 createComment 发送 MQ 事件与返回使用。
+    -->
+    <insert id="insert" parameterType="com.xfy.nabu.forum.domain.CommentEntity" useGeneratedKeys="true" keyProperty="id">
+        insert into t_comment (topic_id, author_id, reply_to_id, content)
+        values (#{topicId}, #{authorId}, #{replyToId}, #{content})
+    </insert>
+
+</mapper>

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xfy.nabu.file.mapper.FileMetaMapper">
+
+    <resultMap id="FileMetaResultMap" type="com.xfy.nabu.file.domain.FileMetaEntity">
+        <id property="id" column="id"/>
+        <result property="uploaderId" column="uploader_id"/>
+        <result property="bucket" column="bucket"/>
+        <result property="objectKey" column="object_key"/>
+        <result property="originalName" column="original_name"/>
+        <result property="contentType" column="content_type"/>
+        <result property="sizeBytes" column="size_bytes"/>
+        <result property="url" column="url"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+        <result property="deleted" column="deleted"/>
+    </resultMap>
+
+    <sql id="Columns">
+        id, uploader_id, bucket, object_key, original_name, content_type, size_bytes, url, created_at, updated_at, deleted
+    </sql>
+
+    <insert id="insert" parameterType="com.xfy.nabu.file.domain.FileMetaEntity" useGeneratedKeys="true" keyProperty="id">
+        insert into t_file_meta (uploader_id, bucket, object_key, original_name, content_type, size_bytes, url)
+        values (#{uploaderId}, #{bucket}, #{objectKey}, #{originalName}, #{contentType}, #{sizeBytes}, #{url})
+    </insert>
+
+    <select id="selectById" resultMap="FileMetaResultMap">
+        select <include refid="Columns"/> from t_file_meta where id = #{id} and deleted = 0
+    </select>
+
+    <delete id="deleteById">
+        delete from t_file_meta where id = #{id}
+    </delete>
+
+</mapper>

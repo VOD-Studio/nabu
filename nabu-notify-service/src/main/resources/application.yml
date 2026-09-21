@@ -1,0 +1,76 @@
+server:
+  port: 18085
+
+spring:
+  application:
+    name: nabu-notify-service
+  cloud:
+    nacos:
+      config:
+        server-addr: ${NACOS_ADDRESS:127.0.0.1}:8848
+        namespace: ${NACOS_NAMESPACE:}
+        group: DEFAULT_GROUP
+        file-extension: yaml
+      discovery:
+        server-addr: ${NACOS_ADDRESS:127.0.0.1}:8848
+        namespace: ${NACOS_NAMESPACE:}
+    sentinel:
+      transport:
+        dashboard: ${SENTINEL_DASHBOARD:127.0.0.1:8858}
+      datasource:
+        ds1:
+          nacos:
+            server-addr: ${NACOS_ADDRESS:127.0.0.1}:8848
+            dataId: ${spring.application.name}-flow-rules
+            groupId: DEFAULT_GROUP
+            rule-type: flow
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://${MYSQL_NOTIFY_HOST:127.0.0.1}:${MYSQL_NOTIFY_PORT:3310}/nabu_notify?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
+    username: ${MYSQL_NOTIFY_USERNAME:nabu}
+    password: ${MYSQL_NOTIFY_PASSWORD:nabu123456}
+    type: com.alibaba.druid.pool.DruidDataSource
+    druid:
+      initial-size: 5
+      min-idle: 5
+      max-active: 20
+      stat-view-servlet:
+        enabled: true
+        login-username: admin
+        login-password: admin123
+
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+
+dubbo:
+  application:
+    name: ${spring.application.name}
+    logger: slf4j
+  protocol:
+    name: tri
+    port: 28085
+  registry:
+    address: nacos://${NACOS_ADDRESS:127.0.0.1}:8848
+    register-mode: instance
+    parameters:
+      namespace: ${NACOS_NAMESPACE:}
+
+rocketmq:
+  name-server: ${ROCKETMQ_NAMESRV:127.0.0.1:9876}
+  producer:
+    group: ${spring.application.name}-producer-group
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    com.xfy.nabu: debug

@@ -1,0 +1,59 @@
+server:
+  port: 18086
+
+spring:
+  application:
+    name: nabu-search-service
+  elasticsearch:
+    uris: ${ELASTICSEARCH_URIS:http://127.0.0.1:9200}
+  cloud:
+    nacos:
+      config:
+        server-addr: ${NACOS_ADDRESS:127.0.0.1}:8848
+        namespace: ${NACOS_NAMESPACE:}
+        group: DEFAULT_GROUP
+        file-extension: yaml
+      discovery:
+        server-addr: ${NACOS_ADDRESS:127.0.0.1}:8848
+        namespace: ${NACOS_NAMESPACE:}
+    sentinel:
+      transport:
+        dashboard: ${SENTINEL_DASHBOARD:127.0.0.1:8858}
+      datasource:
+        ds1:
+          nacos:
+            server-addr: ${NACOS_ADDRESS:127.0.0.1}:8848
+            dataId: ${spring.application.name}-flow-rules
+            groupId: DEFAULT_GROUP
+            rule-type: flow
+
+dubbo:
+  application:
+    name: ${spring.application.name}
+    logger: slf4j
+  protocol:
+    name: tri
+    port: 28086
+  registry:
+    address: nacos://${NACOS_ADDRESS:127.0.0.1}:8848
+    register-mode: instance
+    parameters:
+      namespace: ${NACOS_NAMESPACE:}
+
+rocketmq:
+  name-server: ${ROCKETMQ_NAMESRV:127.0.0.1:9876}
+  producer:
+    group: ${spring.application.name}-producer-group
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    com.xfy.nabu: debug

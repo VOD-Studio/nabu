@@ -1,0 +1,27 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: "otel-collector"
+    static_configs:
+      - targets: ["otel-collector:9464"]
+
+  # 各 Java 服务通过 Spring Boot Actuator 暴露 /actuator/prometheus，
+  # 由于本地容器 IP 会变化，建议后续接入 Nacos/Consul 的 Prometheus 服务发现，
+  # 当前阶段先用静态目标占位，按需把对应服务加进来（服务名:端口，端口是各服务 application.yml 里的 server.port）。
+  - job_name: "nabu-services"
+    static_configs:
+      - targets:
+          - "nabu-user-service:18081"
+          - "nabu-auth-service:18082"
+          - "nabu-forum-service:18083"
+          - "nabu-social-service:18084"
+          - "nabu-notify-service:18085"
+          - "nabu-search-service:18086"
+          - "nabu-file-service:18087"
+          - "nabu-moderation-service:18088"
+          - "nabu-stat-service:18089"
+          - "nabu-task-service:18090"
+          - "nabu-admin-service:18091"
+          - "nabu-web:18080"
+    metrics_path: /actuator/prometheus

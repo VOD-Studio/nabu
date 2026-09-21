@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xfy.nabu.moderation.mapper.ModerationLogMapper">
+
+    <insert id="insertIgnore" parameterType="com.xfy.nabu.moderation.domain.ModerationLogEntity"
+            useGeneratedKeys="true" keyProperty="id">
+        <!--
+          INSERT IGNORE 依赖 t_moderation_log 表上 (target_type, target_id) 的唯一索引 uk_target：
+          MQ 因网络抖动或消费重试导致同一事件被重复投递时，第二次插入会被 MySQL 直接忽略（返回 0 行受影响），
+          不会产生重复审核记录——这是消费幂等的一种简单实现，代价是"重复消费时不做任何更新"，
+          即如果同一条内容先判 PASS 后又因规则调整应该判 REJECT，这里不会覆盖旧结论。
+          生产环境更常见做法是用 INSERT ... ON DUPLICATE KEY UPDATE verdict=VALUES(verdict) 允许"重新审核覆盖旧结论"。
+        -->
+        insert ignore into t_moderation_log (target_type, target_id, verdict, reason)
+        values (#{targetType}, #{targetId}, #{verdict}, #{reason})
+    </insert>
+
+</mapper>

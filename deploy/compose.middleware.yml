@@ -1,0 +1,173 @@
+# =====================================================================================
+# 中间件层：Nacos（注册+配置中心）、Sentinel Dashboard、RocketMQ、Seata、Canal、Higress。
+# =====================================================================================
+name: nabu
+
+services:
+
+  # ---------------------------------------------------------------------------------
+  # Nacos：单机模式，同时承担服务注册发现与动态配置中心。
+  # ---------------------------------------------------------------------------------
+  nacos:
+    image: nacos/nacos-server:v3.0.3
+    container_name: nabu-nacos
+    restart: unless-stopped
+    environment:
+      - MODE=standalone
+      - NACOS_AUTH_ENABLE=false
+      - PREFER_HOST_MODE=hostname
+    ports:
+      - "8848:8848"
+      - "9848:9848"
+      - "9849:9849"
+    volumes:
+      - ./data/nacos/logs:/home/nacos/logs
+      - ./data/nacos/data:/home/nacos/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8848/nacos/v1/console/health/readiness || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 20s
+    networks: [nabu-net]
+
+  # ---------------------------------------------------------------------------------
+  # Sentinel Dashboard：流控/熔断规则可视化配置与实时监控。
+  # ---------------------------------------------------------------------------------
+  sentinel-dashboard:
+    image: bladex/sentinel-dashboard:1.8.9
+    container_name: nabu-sentinel-dashboard
+    restart: unless-stopped
+    ports:
+      - "8858:8858"
+    environment:
+      - JAVA_OPTS=-Dserver.port=8858 -Dsentinel.dashboard.auth.username=sentinel -Dsentinel.dashboard.auth.password=sentinel
+    networks: [nabu-net]
+
+  # ---------------------------------------------------------------------------------
+  # RocketMQ 5.x：NameServer + Broker + Proxy（Producer/Consumer 通过 Proxy 统一接入）。
+  # ---------------------------------------------------------------------------------
+  rmqnamesrv:
+    image: apache/rocketmq:5.3.1
+    container_name: nabu-rmqnamesrv
+    restart: unless-stopped
+    ports:
+      - "9876:9876"
+    command: sh mqnamesrv
+    networks: [nabu-net]
+
+  rmqbroker:
+    image: apache/rocketmq:5.3.1
+    container_name: nabu-rmqbroker
+    restart: unless-stopped
+    depends_on:
+      - rmqnamesrv
+    ports:
+      - "10909:10909"
+      - "10911:10911"
+      - "10912:10912"
+    environment:
+      - NAMESRV_ADDR=rmqnamesrv:9876
+      # 单机部署，brokerIP1 设为容器服务名，仅供 compose 内部网络访问。
+      - JAVA_OPT_EXT=-Xms512m -Xmx512m
+    volumes:
+      - ./config/rocketmq/broker.conf:/opt/rocketmq/conf/broker.conf
+      - ./data/rocketmq/broker/logs:/home/rocketmq/logs
+      - ./data/rocketmq/broker/store:/home/rocketmq/store
+    command: sh mqbroker -c /opt/rocketmq/conf/broker.conf
+    networks: [nabu-net]
+
+  rmqproxy:
+    image: apache/rocketmq:5.3.1
+    container_name: nabu-rmqproxy
+    restart: unless-stopped
+    depends_on:
+      - rmqbroker
+      - rmqnamesrv
+    ports:
+      - "8081:8081"
+      - "8082:8080"
+    environment:
+      - NAMESRV_ADDR=rmqnamesrv:9876
+    command: sh mqproxy
+    networks: [nabu-net]
+
+  rmqdashboard:
+    image: apacherocketmq/rocketmq-dashboard:latest
+    container_name: nabu-rmqdashboard
+    restart: unless-stopped
+    depends_on:
+      - rmqnamesrv
+    ports:
+      - "9878:8080"
+    environment:
+      - JAVA_OPTS=-Drocketmq.namesrv.addr=rmqnamesrv:9876
+    networks: [nabu-net]
+
+  # ---------------------------------------------------------------------------------
+  # Seata Server：AT 模式分布式事务协调器（TC）。
+  # 注册到 Nacos，各服务 seata.registry.type=nacos 与之对应。
+  # ---------------------------------------------------------------------------------
+  seata-server:
+    image: apache/seata-server:2.5.0
+    container_name: nabu-seata-server
+    restart: unless-stopped
+    depends_on:
+      - nacos
+    ports:
+      - "8091:8091"
+      - "7091:7091"
+    environment:
+      - SEATA_PORT=8091
+      - STORE_MODE=file
+      - SEATA_IP=seata-server
+      - registry.type=nacos
+      - registry.nacos.serverAddr=nacos:8848
+      - registry.nacos.namespace=
+      - registry.nacos.group=SEATA_GROUP
+      - config.type=nacos
+      - config.nacos.serverAddr=nacos:8848
+      - config.nacos.namespace=
+      - config.nacos.group=SEATA_GROUP
+    volumes:
+      - ./data/seata:/root/seata-server/data
+    networks: [nabu-net]
+
+  # ---------------------------------------------------------------------------------
+  # Canal Server：监听 mysql-forum 的 binlog（用于 t_topic -> Elasticsearch 索引同步）。
+  # 注意：MySQL 容器需要开启 binlog（row 格式）并授予 canal 账号 REPLICATION 权限，
+  # 详见 deploy/config/mysql/init/ 下的初始化脚本；本 canal-server 的实例配置见
+  # deploy/config/canal/（如需真实运行，请参考 docs/canal-setup.md 补充账号与 instance.properties）。
+  # ---------------------------------------------------------------------------------
+  canal-server:
+    image: canal/canal-server:latest
+    container_name: nabu-canal-server
+    restart: unless-stopped
+    depends_on:
+      - mysql-forum
+    ports:
+      - "11111:11111"
+      - "11112:11112"
+    environment:
+      - canal.auto.scan=false
+    networks: [nabu-net]
+
+  # ---------------------------------------------------------------------------------
+  # Higress：Docker All-in-One 单容器模式（网关 + 控制台），单机简化部署。
+  # ---------------------------------------------------------------------------------
+  higress:
+    image: higress-registry.cn-hangzhou.cr.aliyuncs.com/higress/all-in-one:latest
+    container_name: nabu-higress
+    restart: unless-stopped
+    ports:
+      - "8001:8001"
+      - "8080:8080"
+      - "8443:8443"
+    volumes:
+      - ./data/higress:/data
+    networks: [nabu-net]
+
+networks:
+  nabu-net:
+    name: nabu-net
+    driver: bridge

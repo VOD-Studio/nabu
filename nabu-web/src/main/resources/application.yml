@@ -1,0 +1,49 @@
+server:
+  port: 18080
+
+spring:
+  application:
+    name: nabu-web
+  cloud:
+    nacos:
+      config:
+        server-addr: ${NACOS_ADDRESS:127.0.0.1}:8848
+        namespace: ${NACOS_NAMESPACE:}
+        group: DEFAULT_GROUP
+        file-extension: yaml
+      discovery:
+        server-addr: ${NACOS_ADDRESS:127.0.0.1}:8848
+        namespace: ${NACOS_NAMESPACE:}
+    sentinel:
+      transport:
+        dashboard: ${SENTINEL_DASHBOARD:127.0.0.1:8858}
+      datasource:
+        ds1:
+          nacos:
+            server-addr: ${NACOS_ADDRESS:127.0.0.1}:8848
+            dataId: ${spring.application.name}-flow-rules
+            groupId: DEFAULT_GROUP
+            rule-type: flow
+
+dubbo:
+  application:
+    name: ${spring.application.name}
+    logger: slf4j
+  registry:
+    address: nacos://${NACOS_ADDRESS:127.0.0.1}:8848
+    register-mode: instance
+    parameters:
+      namespace: ${NACOS_NAMESPACE:}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    com.xfy.nabu: debug

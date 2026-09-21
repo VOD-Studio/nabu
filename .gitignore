@@ -1,0 +1,15 @@
+target/
+bin/
+*.class
+*.log
+.idea/
+*.iml
+.DS_Store
+.project
+.classpath
+.factorypath
+.settings/
+.mvn/wrapper/maven-wrapper.jar
+node_modules/
+deploy/data/
+deploy/**/logs/

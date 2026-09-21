@@ -1,0 +1,113 @@
+server:
+  port: 18083
+
+spring:
+  application:
+    name: nabu-forum-service
+  cloud:
+    nacos:
+      config:
+        server-addr: ${NACOS_ADDRESS:127.0.0.1}:8848
+        namespace: ${NACOS_NAMESPACE:}
+        group: DEFAULT_GROUP
+        file-extension: yaml
+      discovery:
+        server-addr: ${NACOS_ADDRESS:127.0.0.1}:8848
+        namespace: ${NACOS_NAMESPACE:}
+    sentinel:
+      transport:
+        dashboard: ${SENTINEL_DASHBOARD:127.0.0.1:8858}
+      datasource:
+        ds1:
+          nacos:
+            server-addr: ${NACOS_ADDRESS:127.0.0.1}:8848
+            dataId: ${spring.application.name}-flow-rules
+            groupId: DEFAULT_GROUP
+            rule-type: flow
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://${MYSQL_FORUM_HOST:127.0.0.1}:${MYSQL_FORUM_PORT:3308}/nabu_forum?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
+    username: ${MYSQL_FORUM_USERNAME:nabu}
+    password: ${MYSQL_FORUM_PASSWORD:nabu123456}
+    type: com.alibaba.druid.pool.DruidDataSource
+    druid:
+      initial-size: 5
+      min-idle: 5
+      max-active: 20
+      stat-view-servlet:
+        enabled: true
+        login-username: admin
+        login-password: admin123
+  data:
+    redis:
+      host: ${REDIS_HOST:127.0.0.1}
+      port: ${REDIS_PORT:6379}
+      database: 3
+
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+
+dubbo:
+  application:
+    name: ${spring.application.name}
+    logger: slf4j
+  protocol:
+    name: tri
+    port: 28083
+  registry:
+    address: nacos://${NACOS_ADDRESS:127.0.0.1}:8848
+    register-mode: instance
+    parameters:
+      namespace: ${NACOS_NAMESPACE:}
+
+rocketmq:
+  name-server: ${ROCKETMQ_NAMESRV:127.0.0.1:9876}
+  producer:
+    group: ${spring.application.name}-producer-group
+
+seata:
+  enabled: true
+  application-id: ${spring.application.name}
+  tx-service-group: nabu-tx-group
+  service:
+    vgroup-mapping:
+      nabu-tx-group: default
+    grouplist:
+      default: ${SEATA_ADDRESS:127.0.0.1:8091}
+  registry:
+    type: nacos
+    nacos:
+      server-addr: ${NACOS_ADDRESS:127.0.0.1}:8848
+      namespace: ${NACOS_NAMESPACE:}
+      group: SEATA_GROUP
+
+jetcache:
+  statIntervalMinutes: 15
+  local:
+    default:
+      type: caffeine
+      keyConvertor: fastjson2
+      limit: 1000
+  remote:
+    default:
+      type: redisson
+      keyConvertor: fastjson2
+      broadcastChannel: ${spring.application.name}-jetcache
+      valueEncoder: java
+      valueDecoder: java
+      uri: redis://${REDIS_HOST:127.0.0.1}:${REDIS_PORT:6379}/3
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    com.xfy.nabu: debug

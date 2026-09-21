@@ -1,0 +1,63 @@
+server:
+  port: 18084
+
+spring:
+  application:
+    name: nabu-social-service
+  cloud:
+    nacos:
+      config:
+        server-addr: ${NACOS_ADDRESS:127.0.0.1}:8848
+        namespace: ${NACOS_NAMESPACE:}
+        group: DEFAULT_GROUP
+        file-extension: yaml
+      discovery:
+        server-addr: ${NACOS_ADDRESS:127.0.0.1}:8848
+        namespace: ${NACOS_NAMESPACE:}
+    sentinel:
+      transport:
+        dashboard: ${SENTINEL_DASHBOARD:127.0.0.1:8858}
+      datasource:
+        ds1:
+          nacos:
+            server-addr: ${NACOS_ADDRESS:127.0.0.1}:8848
+            dataId: ${spring.application.name}-flow-rules
+            groupId: DEFAULT_GROUP
+            rule-type: flow
+  data:
+    redis:
+      host: ${REDIS_HOST:127.0.0.1}
+      port: ${REDIS_PORT:6379}
+      # 本模块把 Redis 当主存储用（点赞/关注/签到），单独占用一个 database 与其余服务的缓存数据隔离
+      database: 4
+
+dubbo:
+  application:
+    name: ${spring.application.name}
+    logger: slf4j
+  protocol:
+    name: tri
+    port: 28084
+  registry:
+    address: nacos://${NACOS_ADDRESS:127.0.0.1}:8848
+    register-mode: instance
+    parameters:
+      namespace: ${NACOS_NAMESPACE:}
+
+rocketmq:
+  name-server: ${ROCKETMQ_NAMESRV:127.0.0.1:9876}
+  producer:
+    group: ${spring.application.name}-producer
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    com.xfy.nabu: debug

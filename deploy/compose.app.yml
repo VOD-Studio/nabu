@@ -1,0 +1,281 @@
+# =====================================================================================
+# 应用层：13 个 Java 微服务。全部使用同一份根 Dockerfile，通过 build.args.MODULE 区分。
+#
+# 注意：
+# - 本文件里的环境变量覆盖各服务 application.yml 里的裸机默认值（127.0.0.1:xxxx），
+#   改为 compose 内部服务名，实现容器网络互通，具体环境变量含义见 deploy/.env 注释。
+# - 生产不会这样直接把全部服务塞进一个 compose，这里是为了本地一键拉起全链路便于联调。
+# =====================================================================================
+name: nabu
+
+services:
+
+  nabu-user-service:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+      args:
+        MODULE: nabu-user-service
+    container_name: nabu-user-service
+    restart: unless-stopped
+    ports:
+      - "18081:18081"
+    environment:
+      - NACOS_ADDRESS=${NACOS_ADDRESS}
+      - SENTINEL_DASHBOARD=${SENTINEL_DASHBOARD}
+      - SEATA_ADDRESS=${SEATA_ADDRESS}
+      - ROCKETMQ_NAMESRV=${ROCKETMQ_NAMESRV}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - MYSQL_USER_HOST=${MYSQL_USER_HOST}
+      - MYSQL_USER_PORT=${MYSQL_USER_PORT}
+      - MYSQL_USER_USERNAME=${MYSQL_USER_USERNAME}
+      - MYSQL_USER_PASSWORD=${MYSQL_USER_PASSWORD}
+    depends_on:
+      - mysql-user
+      - redis
+      - nacos
+    networks: [nabu-net]
+
+  nabu-auth-service:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+      args:
+        MODULE: nabu-auth-service
+    container_name: nabu-auth-service
+    restart: unless-stopped
+    ports:
+      - "18082:18082"
+    environment:
+      - NACOS_ADDRESS=${NACOS_ADDRESS}
+      - SENTINEL_DASHBOARD=${SENTINEL_DASHBOARD}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+    depends_on:
+      - redis
+      - nacos
+    networks: [nabu-net]
+
+  nabu-forum-service:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+      args:
+        MODULE: nabu-forum-service
+    container_name: nabu-forum-service
+    restart: unless-stopped
+    ports:
+      - "18083:18083"
+    environment:
+      - NACOS_ADDRESS=${NACOS_ADDRESS}
+      - SENTINEL_DASHBOARD=${SENTINEL_DASHBOARD}
+      - SEATA_ADDRESS=${SEATA_ADDRESS}
+      - ROCKETMQ_NAMESRV=${ROCKETMQ_NAMESRV}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - MYSQL_FORUM_HOST=${MYSQL_FORUM_HOST}
+      - MYSQL_FORUM_PORT=${MYSQL_FORUM_PORT}
+      - MYSQL_FORUM_USERNAME=${MYSQL_FORUM_USERNAME}
+      - MYSQL_FORUM_PASSWORD=${MYSQL_FORUM_PASSWORD}
+    depends_on:
+      - mysql-forum
+      - redis
+      - nacos
+      - rmqnamesrv
+      - seata-server
+    networks: [nabu-net]
+
+  nabu-social-service:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+      args:
+        MODULE: nabu-social-service
+    container_name: nabu-social-service
+    restart: unless-stopped
+    ports:
+      - "18084:18084"
+    environment:
+      - NACOS_ADDRESS=${NACOS_ADDRESS}
+      - SENTINEL_DASHBOARD=${SENTINEL_DASHBOARD}
+      - ROCKETMQ_NAMESRV=${ROCKETMQ_NAMESRV}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+    depends_on:
+      - redis
+      - nacos
+      - rmqnamesrv
+    networks: [nabu-net]
+
+  nabu-notify-service:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+      args:
+        MODULE: nabu-notify-service
+    container_name: nabu-notify-service
+    restart: unless-stopped
+    ports:
+      - "18085:18085"
+    environment:
+      - NACOS_ADDRESS=${NACOS_ADDRESS}
+      - SENTINEL_DASHBOARD=${SENTINEL_DASHBOARD}
+      - ROCKETMQ_NAMESRV=${ROCKETMQ_NAMESRV}
+      - MYSQL_NOTIFY_HOST=${MYSQL_NOTIFY_HOST}
+      - MYSQL_NOTIFY_PORT=${MYSQL_NOTIFY_PORT}
+      - MYSQL_NOTIFY_USERNAME=${MYSQL_NOTIFY_USERNAME}
+      - MYSQL_NOTIFY_PASSWORD=${MYSQL_NOTIFY_PASSWORD}
+    depends_on:
+      - mysql-notify
+      - nacos
+      - rmqnamesrv
+    networks: [nabu-net]
+
+  nabu-search-service:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+      args:
+        MODULE: nabu-search-service
+    container_name: nabu-search-service
+    restart: unless-stopped
+    ports:
+      - "18086:18086"
+    environment:
+      - NACOS_ADDRESS=${NACOS_ADDRESS}
+      - SENTINEL_DASHBOARD=${SENTINEL_DASHBOARD}
+      - ROCKETMQ_NAMESRV=${ROCKETMQ_NAMESRV}
+      - ELASTICSEARCH_URIS=${ELASTICSEARCH_URIS}
+    depends_on:
+      - elasticsearch
+      - nacos
+      - rmqnamesrv
+    networks: [nabu-net]
+
+  nabu-file-service:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+      args:
+        MODULE: nabu-file-service
+    container_name: nabu-file-service
+    restart: unless-stopped
+    ports:
+      - "18087:18087"
+    environment:
+      - NACOS_ADDRESS=${NACOS_ADDRESS}
+      - SENTINEL_DASHBOARD=${SENTINEL_DASHBOARD}
+      - MYSQL_FILE_HOST=${MYSQL_FILE_HOST}
+      - MYSQL_FILE_PORT=${MYSQL_FILE_PORT}
+      - MYSQL_FILE_USERNAME=${MYSQL_FILE_USERNAME}
+      - MYSQL_FILE_PASSWORD=${MYSQL_FILE_PASSWORD}
+      - RUSTFS_ENDPOINT=${RUSTFS_ENDPOINT}
+      - RUSTFS_ACCESS_KEY=${RUSTFS_ACCESS_KEY}
+      - RUSTFS_SECRET_KEY=${RUSTFS_SECRET_KEY}
+      - RUSTFS_BUCKET=${RUSTFS_BUCKET}
+    depends_on:
+      - mysql-file
+      - rustfs
+      - nacos
+    networks: [nabu-net]
+
+  nabu-moderation-service:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+      args:
+        MODULE: nabu-moderation-service
+    container_name: nabu-moderation-service
+    restart: unless-stopped
+    ports:
+      - "18088:18088"
+    environment:
+      - NACOS_ADDRESS=${NACOS_ADDRESS}
+      - SENTINEL_DASHBOARD=${SENTINEL_DASHBOARD}
+      - ROCKETMQ_NAMESRV=${ROCKETMQ_NAMESRV}
+      - MYSQL_MODERATION_HOST=${MYSQL_MODERATION_HOST}
+      - MYSQL_MODERATION_PORT=${MYSQL_MODERATION_PORT}
+      - MYSQL_MODERATION_USERNAME=${MYSQL_MODERATION_USERNAME}
+      - MYSQL_MODERATION_PASSWORD=${MYSQL_MODERATION_PASSWORD}
+    depends_on:
+      - mysql-moderation
+      - nacos
+      - rmqnamesrv
+    networks: [nabu-net]
+
+  nabu-stat-service:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+      args:
+        MODULE: nabu-stat-service
+    container_name: nabu-stat-service
+    restart: unless-stopped
+    ports:
+      - "18089:18089"
+    environment:
+      - NACOS_ADDRESS=${NACOS_ADDRESS}
+      - SENTINEL_DASHBOARD=${SENTINEL_DASHBOARD}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+    depends_on:
+      - redis
+      - nacos
+    networks: [nabu-net]
+
+  nabu-task-service:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+      args:
+        MODULE: nabu-task-service
+    container_name: nabu-task-service
+    restart: unless-stopped
+    ports:
+      - "18090:18090"
+    environment:
+      - NACOS_ADDRESS=${NACOS_ADDRESS}
+      - SENTINEL_DASHBOARD=${SENTINEL_DASHBOARD}
+    depends_on:
+      - nacos
+    networks: [nabu-net]
+
+  nabu-admin-service:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+      args:
+        MODULE: nabu-admin-service
+    container_name: nabu-admin-service
+    restart: unless-stopped
+    ports:
+      - "18091:18091"
+    environment:
+      - NACOS_ADDRESS=${NACOS_ADDRESS}
+      - SENTINEL_DASHBOARD=${SENTINEL_DASHBOARD}
+    depends_on:
+      - nacos
+    networks: [nabu-net]
+
+  nabu-web:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+      args:
+        MODULE: nabu-web
+    container_name: nabu-web
+    restart: unless-stopped
+    ports:
+      - "18080:18080"
+    environment:
+      - NACOS_ADDRESS=${NACOS_ADDRESS}
+      - SENTINEL_DASHBOARD=${SENTINEL_DASHBOARD}
+    depends_on:
+      - nacos
+    networks: [nabu-net]
+
+networks:
+  nabu-net:
+    name: nabu-net
+    driver: bridge

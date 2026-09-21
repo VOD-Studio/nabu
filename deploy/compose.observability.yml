@@ -1,0 +1,81 @@
+# =====================================================================================
+# 可观测性层：OpenTelemetry Collector + Prometheus（指标）+ Tempo（链路）+ Loki（日志）+ Grafana（可视化）。
+# 各 Java 服务通过 OTLP 上报 traces/metrics/logs 到 otel-collector（默认地址见各服务 application.yml
+# 或统一环境变量 OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318）。
+# =====================================================================================
+name: nabu
+
+services:
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    container_name: nabu-otel-collector
+    restart: unless-stopped
+    volumes:
+      - ./config/observability/otel/otel-collector-config.yaml:/etc/otelcol-contrib/config.yaml
+    ports:
+      - "4317:4317"   # OTLP gRPC
+      - "4318:4318"   # OTLP HTTP
+      - "9464:9464"   # Prometheus exporter（供 Prometheus 抓取汇总指标）
+    networks: [nabu-net]
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: nabu-prometheus
+    restart: unless-stopped
+    volumes:
+      - ./config/observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./data/prometheus:/prometheus
+    ports:
+      - "9090:9090"
+    networks: [nabu-net]
+
+  loki:
+    image: grafana/loki:3.4.2
+    container_name: nabu-loki
+    restart: unless-stopped
+    user: "0:0"
+    volumes:
+      - ./config/observability/loki/loki-config.yaml:/etc/loki/local-config.yaml:ro
+      - ./data/loki:/loki
+    command: -config.file=/etc/loki/local-config.yaml
+    ports:
+      - "3100:3100"
+    networks: [nabu-net]
+
+  tempo:
+    image: grafana/tempo:latest
+    container_name: nabu-tempo
+    restart: unless-stopped
+    user: "0:0"
+    volumes:
+      - ./config/observability/tempo/tempo.yaml:/etc/tempo.yaml:ro
+      - ./data/tempo:/tmp/tempo
+    command: ["-config.file=/etc/tempo.yaml"]
+    ports:
+      - "3200:3200"
+    networks: [nabu-net]
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: nabu-grafana
+    restart: unless-stopped
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin123
+      - GF_AUTH_ANONYMOUS_ENABLED=false
+    volumes:
+      - ./config/observability/grafana/provisioning:/etc/grafana/provisioning
+      - ./data/grafana:/var/lib/grafana
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+      - loki
+      - tempo
+    networks: [nabu-net]
+
+networks:
+  nabu-net:
+    name: nabu-net
+    driver: bridge

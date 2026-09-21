@@ -1,0 +1,58 @@
+server:
+  port: 18082
+
+spring:
+  application:
+    name: nabu-auth-service
+  cloud:
+    nacos:
+      config:
+        server-addr: ${NACOS_ADDRESS:127.0.0.1}:8848
+        namespace: ${NACOS_NAMESPACE:}
+        group: DEFAULT_GROUP
+        file-extension: yaml
+      discovery:
+        server-addr: ${NACOS_ADDRESS:127.0.0.1}:8848
+        namespace: ${NACOS_NAMESPACE:}
+    sentinel:
+      transport:
+        dashboard: ${SENTINEL_DASHBOARD:127.0.0.1:8858}
+  data:
+    redis:
+      host: ${REDIS_HOST:127.0.0.1}
+      port: ${REDIS_PORT:6379}
+      # 各服务用不同 database 隔离，本服务专用 database=2（存 refresh token）
+      database: 2
+
+dubbo:
+  application:
+    name: ${spring.application.name}
+    logger: slf4j
+  protocol:
+    name: tri
+    port: 28082
+  registry:
+    address: nacos://${NACOS_ADDRESS:127.0.0.1}:8848
+    register-mode: instance
+    parameters:
+      namespace: ${NACOS_NAMESPACE:}
+
+nabu:
+  jwt:
+    # 生产环境务必替换为随机生成的高强度密钥，并从 Nacos 配置中心/环境变量注入，不要硬编码在此文件里。
+    secret: ${JWT_SECRET:nabu-learning-project-jwt-secret-key-please-change-me-in-prod-0123456789}
+    access-token-expire-minutes: 30
+    refresh-token-expire-days: 7
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    com.xfy.nabu: debug

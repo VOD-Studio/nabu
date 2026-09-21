@@ -1,0 +1,21 @@
+# =====================================================================================
+# Canal instance 配置示例（对应 canal-server 容器内 .../conf/canal-instance/instance.properties）。
+# 这是示例文件（.example 后缀），canal-server 容器不会自动读取本目录下的文件——
+# 真正启用 Canal 同步前，需要先把本文件挂载/拷贝进容器对应路径，见 docs/canal-setup.md。
+# =====================================================================================
+
+# 要监听的 MySQL 地址（mysql-forum 容器，同一 compose 网络内可直接用服务名）
+canal.instance.mysql.slaveId=1234
+canal.instance.master.address=mysql-forum:3306
+
+# 连接 MySQL 的账号（需要 SELECT + REPLICATION SLAVE + REPLICATION CLIENT 权限，
+# 见 deploy/config/mysql/init/README.md）
+canal.instance.dbUsername=canal
+canal.instance.dbPassword=canal
+
+# 只订阅 nabu_forum 库的 t_topic 表（本项目 Canal 链路只用来同步帖子到 Elasticsearch）
+canal.instance.filter.regex=nabu_forum\.t_topic
+
+# 投递到 RocketMQ 的目标 topic/tag（与 nabu-search-service 的 CanalBinlogSyncEventListener 约定一致）
+canal.mq.topic=CanalBinlogSyncEvent
+canal.mq.partition=0

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xfy.nabu.notify.mapper.NotificationMapper">
+
+    <resultMap id="NotificationResultMap" type="com.xfy.nabu.notify.domain.NotificationEntity">
+        <id property="id" column="id"/>
+        <result property="receiverId" column="receiver_id"/>
+        <result property="type" column="type"/>
+        <result property="content" column="content"/>
+        <result property="linkUrl" column="link_url"/>
+        <result property="isRead" column="is_read"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+        <result property="deleted" column="deleted"/>
+    </resultMap>
+
+    <sql id="Columns">
+        id, receiver_id, type, content, link_url, is_read, created_at, updated_at, deleted
+    </sql>
+
+    <insert id="insert" parameterType="com.xfy.nabu.notify.domain.NotificationEntity" useGeneratedKeys="true" keyProperty="id">
+        insert into t_notification (receiver_id, type, content, link_url, is_read)
+        values (#{receiverId}, #{type}, #{content}, #{linkUrl}, #{isRead})
+    </insert>
+
+    <select id="selectByReceiver" resultMap="NotificationResultMap">
+        select <include refid="Columns"/> from t_notification
+        where receiver_id = #{receiverId} and deleted = 0
+        order by created_at desc
+        limit #{offset}, #{limit}
+    </select>
+
+    <select id="countByReceiver" resultType="long">
+        select count(*) from t_notification where receiver_id = #{receiverId} and deleted = 0
+    </select>
+
+    <select id="countUnread" resultType="long">
+        select count(*) from t_notification where receiver_id = #{receiverId} and is_read = 0 and deleted = 0
+    </select>
+
+    <update id="markRead">
+        update t_notification set is_read = 1
+        where receiver_id = #{receiverId} and id = #{id} and deleted = 0
+    </update>
+
+    <update id="markAllRead">
+        update t_notification set is_read = 1
+        where receiver_id = #{receiverId} and is_read = 0 and deleted = 0
+    </update>
+
+</mapper>
