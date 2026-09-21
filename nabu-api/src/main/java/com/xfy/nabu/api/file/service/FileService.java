@@ -12,7 +12,8 @@ public interface FileService {
     PresignedUploadDTO createPresignedUpload(Long uploaderId, String originalName, String contentType);
 
     /** 直传完成后，前端回调此接口落库文件元数据 */
-    FileMetaDTO confirmUpload(Long uploaderId, String objectKey, String originalName, String contentType, long sizeBytes);
+    FileMetaDTO confirmUpload(
+            Long uploaderId, String objectKey, String originalName, String contentType, long sizeBytes);
 
     FileMetaDTO getById(Long fileId);
 

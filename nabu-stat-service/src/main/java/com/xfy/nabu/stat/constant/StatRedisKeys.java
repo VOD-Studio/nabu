@@ -5,8 +5,7 @@ package com.xfy.nabu.stat.constant;
  */
 public final class StatRedisKeys {
 
-    private StatRedisKeys() {
-    }
+    private StatRedisKeys() {}
 
     /** 话题 PV 计数，Redis String，INCR 累加 */
     public static String pvKey(Long topicId) {

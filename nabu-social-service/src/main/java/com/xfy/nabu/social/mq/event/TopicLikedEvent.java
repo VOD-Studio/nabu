@@ -13,8 +13,7 @@ public class TopicLikedEvent implements Serializable {
     private Long userId;
     private boolean liked;
 
-    public TopicLikedEvent() {
-    }
+    public TopicLikedEvent() {}
 
     public TopicLikedEvent(Long targetId, Long userId, boolean liked) {
         this.targetId = targetId;

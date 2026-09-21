@@ -9,6 +9,7 @@ public class NotificationDTO implements Serializable {
     private Long receiverId;
     /** 通知类型：COMMENT_REPLY / LIKE / MENTION / SYSTEM */
     private String type;
+
     private String content;
     private String linkUrl;
     private boolean read;

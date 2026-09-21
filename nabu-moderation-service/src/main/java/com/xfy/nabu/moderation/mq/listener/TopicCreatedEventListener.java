@@ -11,10 +11,7 @@ import org.springframework.stereotype.Component;
  * 帖子标题和正文都参与检测：标题命中敏感词的概率不低，且标题往往是引流/广告话术的重灾区。
  */
 @Component
-@RocketMQMessageListener(
-        topic = "TopicCreatedEvent",
-        consumerGroup = "TopicCreatedEvent_MODERATION_CG"
-)
+@RocketMQMessageListener(topic = "TopicCreatedEvent", consumerGroup = "TopicCreatedEvent_MODERATION_CG")
 public class TopicCreatedEventListener implements RocketMQListener<TopicCreatedMessage> {
 
     private final ModerationBizService moderationBizService;
@@ -25,7 +22,8 @@ public class TopicCreatedEventListener implements RocketMQListener<TopicCreatedM
 
     @Override
     public void onMessage(TopicCreatedMessage msg) {
-        String textToReview = (msg.getTitle() == null ? "" : msg.getTitle()) + "\n" + (msg.getContent() == null ? "" : msg.getContent());
+        String textToReview = (msg.getTitle() == null ? "" : msg.getTitle()) + "\n"
+                + (msg.getContent() == null ? "" : msg.getContent());
         moderationBizService.asyncReview("TOPIC", msg.getTopicId(), textToReview);
     }
 }

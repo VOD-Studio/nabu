@@ -5,14 +5,13 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
-import org.springframework.stereotype.Component;
-
-import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
 import java.util.UUID;
+import javax.crypto.SecretKey;
+import org.springframework.stereotype.Component;
 
 /**
  * JWT 签发/解析工具类，基于 jjwt 0.12.x API。
@@ -69,7 +68,11 @@ public class JwtTokenProvider {
     /** 解析并校验签名/有效期，失败返回 null（不抛异常打断调用方主流程） */
     public Claims parseClaims(String token) {
         try {
-            return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload();
+            return Jwts.parser()
+                    .verifyWith(secretKey)
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
         } catch (JwtException | IllegalArgumentException ex) {
             return null;
         }

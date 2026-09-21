@@ -8,15 +8,14 @@ import com.xfy.nabu.file.config.RustFsProperties;
 import com.xfy.nabu.file.domain.FileMetaEntity;
 import com.xfy.nabu.file.mapper.FileMetaMapper;
 import com.xfy.nabu.file.service.FileBizService;
-import org.springframework.stereotype.Service;
-import software.amazon.awssdk.services.s3.presigner.S3Presigner;
-import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
-import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-
 import java.time.Duration;
 import java.time.LocalDate;
 import java.util.UUID;
+import org.springframework.stereotype.Service;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
 
 @Service
 public class FileBizServiceImpl implements FileBizService {
@@ -25,9 +24,8 @@ public class FileBizServiceImpl implements FileBizService {
     private final RustFsProperties rustFsProperties;
     private final FileMetaMapper fileMetaMapper;
 
-    public FileBizServiceImpl(S3Presigner s3Presigner,
-                               RustFsProperties rustFsProperties,
-                               FileMetaMapper fileMetaMapper) {
+    public FileBizServiceImpl(
+            S3Presigner s3Presigner, RustFsProperties rustFsProperties, FileMetaMapper fileMetaMapper) {
         this.s3Presigner = s3Presigner;
         this.rustFsProperties = rustFsProperties;
         this.fileMetaMapper = fileMetaMapper;
@@ -50,12 +48,14 @@ public class FileBizServiceImpl implements FileBizService {
         PresignedUploadDTO dto = new PresignedUploadDTO();
         dto.setUploadUrl(presigned.url().toString());
         dto.setObjectKey(objectKey);
-        dto.setExpiresInSeconds(Duration.ofMinutes(rustFsProperties.getPresignExpireMinutes()).getSeconds());
+        dto.setExpiresInSeconds(
+                Duration.ofMinutes(rustFsProperties.getPresignExpireMinutes()).getSeconds());
         return dto;
     }
 
     @Override
-    public FileMetaDTO confirmUpload(Long uploaderId, String objectKey, String originalName, String contentType, long sizeBytes) {
+    public FileMetaDTO confirmUpload(
+            Long uploaderId, String objectKey, String originalName, String contentType, long sizeBytes) {
         // 简化处理：不做真实大小校验（生产环境建议先 HeadObject 核对一次实际对象大小，避免元数据与真实文件不一致）。
         FileMetaEntity entity = new FileMetaEntity();
         entity.setUploaderId(uploaderId);
@@ -97,9 +97,13 @@ public class FileBizServiceImpl implements FileBizService {
     private String buildObjectKey(String originalName) {
         LocalDate today = LocalDate.now();
         String safeName = originalName == null ? "file" : originalName.replaceAll("[^A-Za-z0-9._-]", "_");
-        return String.format("%d/%02d/%02d/%s-%s",
-                today.getYear(), today.getMonthValue(), today.getDayOfMonth(),
-                UUID.randomUUID().toString().replace("-", ""), safeName);
+        return String.format(
+                "%d/%02d/%02d/%s-%s",
+                today.getYear(),
+                today.getMonthValue(),
+                today.getDayOfMonth(),
+                UUID.randomUUID().toString().replace("-", ""),
+                safeName);
     }
 
     private FileMetaDTO toDTO(FileMetaEntity entity) {

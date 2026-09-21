@@ -13,10 +13,7 @@ import org.springframework.stereotype.Component;
  * 另一方面落审核日志（t_moderation_log）供人工巡检追溯。
  */
 @Component
-@RocketMQMessageListener(
-        topic = "CommentCreatedEvent",
-        consumerGroup = "CommentCreatedEvent_MODERATION_CG"
-)
+@RocketMQMessageListener(topic = "CommentCreatedEvent", consumerGroup = "CommentCreatedEvent_MODERATION_CG")
 public class CommentCreatedEventListener implements RocketMQListener<CommentCreatedMessage> {
 
     private final ModerationBizService moderationBizService;

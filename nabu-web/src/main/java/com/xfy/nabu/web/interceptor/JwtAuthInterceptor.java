@@ -7,14 +7,13 @@ import com.xfy.nabu.common.result.ResultCode;
 import com.xfy.nabu.common.util.TraceContext;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import org.apache.dubbo.config.annotation.DubboReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
-
-import java.io.IOException;
 
 /**
  * JWT 鉴权拦截器。
@@ -39,7 +38,8 @@ public class JwtAuthInterceptor implements HandlerInterceptor {
     private AuthService authService;
 
     @Override
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws IOException {
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
+            throws IOException {
         String token = extractToken(request);
         if (token == null) {
             writeUnauthorized(response);
@@ -68,7 +68,8 @@ public class JwtAuthInterceptor implements HandlerInterceptor {
     }
 
     @Override
-    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) {
+    public void afterCompletion(
+            HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) {
         // 请求处理完毕后必须清理 TraceContext，避免线程池复用导致的用户上下文串号。
         TraceContext.clear();
     }

@@ -1,7 +1,6 @@
 package com.xfy.nabu.stat.service;
 
 import com.xfy.nabu.api.stat.dto.HotTopicDTO;
-
 import java.util.List;
 
 /**

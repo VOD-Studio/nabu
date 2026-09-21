@@ -16,8 +16,7 @@ public class Result<T> implements Serializable {
     /** 全链路追踪 id，便于日志/Trace 关联，来自 {@link com.xfy.nabu.common.util.TraceContext} */
     private String traceId;
 
-    public Result() {
-    }
+    public Result() {}
 
     public static <T> Result<T> success() {
         return success(null);

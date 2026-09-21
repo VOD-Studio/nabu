@@ -7,6 +7,7 @@ public class ToggleLikeRequest {
 
     /** 目标类型：TOPIC / COMMENT */
     private String targetType;
+
     private Long targetId;
     private boolean liked;
 

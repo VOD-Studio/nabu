@@ -1,5 +1,6 @@
 package com.xfy.nabu.file.config;
 
+import java.net.URI;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -10,8 +11,6 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
-
-import java.net.URI;
 
 /**
  * 通过标准 AWS S3 SDK 访问 RustFS，业务代码不依赖任何 RustFS 专属 SDK，
@@ -31,8 +30,7 @@ public class RustFsClientConfig {
     }
 
     private StaticCredentialsProvider credentialsProvider(RustFsProperties props) {
-        return StaticCredentialsProvider.create(
-                AwsBasicCredentials.create(props.getAccessKey(), props.getSecretKey()));
+        return StaticCredentialsProvider.create(AwsBasicCredentials.create(props.getAccessKey(), props.getSecretKey()));
     }
 
     @Bean

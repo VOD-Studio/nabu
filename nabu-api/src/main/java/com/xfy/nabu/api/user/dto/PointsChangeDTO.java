@@ -11,6 +11,7 @@ public class PointsChangeDTO implements Serializable {
     private Long userId;
     /** 正数增加，负数扣减 */
     private Integer delta;
+
     private String reason;
     /** 幂等去重 key，例如 "topic:pin:{topicId}" */
     private String idempotentKey;

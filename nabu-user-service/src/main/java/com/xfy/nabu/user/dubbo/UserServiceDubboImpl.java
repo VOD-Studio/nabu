@@ -5,9 +5,8 @@ import com.xfy.nabu.api.user.dto.UserDTO;
 import com.xfy.nabu.api.user.dto.UserRegisterDTO;
 import com.xfy.nabu.api.user.service.UserService;
 import com.xfy.nabu.user.service.UserBizService;
-import org.apache.dubbo.config.annotation.DubboService;
-
 import java.util.List;
+import org.apache.dubbo.config.annotation.DubboService;
 
 /**
  * Dubbo Provider：对外暴露 {@link UserService}，内部转发给 {@link UserBizService}。

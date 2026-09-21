@@ -1,10 +1,9 @@
 package com.xfy.nabu.moderation.config;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Component;
-
 import java.util.ArrayList;
 import java.util.List;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.stereotype.Component;
 
 /**
  * 审核相关配置，对应 application.yml 的 nabu.moderation.* 前缀。

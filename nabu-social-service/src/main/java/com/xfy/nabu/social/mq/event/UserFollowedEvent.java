@@ -11,8 +11,7 @@ public class UserFollowedEvent implements Serializable {
     private Long followerId;
     private Long followeeId;
 
-    public UserFollowedEvent() {
-    }
+    public UserFollowedEvent() {}
 
     public UserFollowedEvent(Long followerId, Long followeeId) {
         this.followerId = followerId;

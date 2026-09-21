@@ -19,8 +19,7 @@ public class TopicCreatedEvent implements Serializable {
     /** 帖子正文：供审核/搜索等下游消费者直接取用，避免二次回查 forum-service */
     private String content;
 
-    public TopicCreatedEvent() {
-    }
+    public TopicCreatedEvent() {}
 
     public TopicCreatedEvent(Long topicId, Long boardId, Long authorId, String title, String content) {
         this.topicId = topicId;

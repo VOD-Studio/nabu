@@ -12,7 +12,6 @@ package com.xfy.nabu.common.result;
  * - 7000+  其余服务按需扩展
  */
 public enum ResultCode {
-
     SUCCESS(0, "success"),
 
     PARAM_INVALID(1000, "参数不合法"),

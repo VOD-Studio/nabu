@@ -14,6 +14,7 @@ public class FileMetaDTO implements Serializable {
     private long sizeBytes;
     /** 最终可访问 URL（通过 file-service 拼接 RustFS 地址或走网关代理） */
     private String url;
+
     private LocalDateTime createdAt;
 
     public Long getId() {

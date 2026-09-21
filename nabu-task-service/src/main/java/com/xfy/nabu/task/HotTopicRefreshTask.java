@@ -2,13 +2,12 @@ package com.xfy.nabu.task;
 
 import com.xfy.nabu.api.stat.dto.HotTopicDTO;
 import com.xfy.nabu.api.stat.service.StatService;
+import java.util.List;
 import org.apache.dubbo.config.annotation.DubboReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
 
 /**
  * 热门榜快照刷新任务。

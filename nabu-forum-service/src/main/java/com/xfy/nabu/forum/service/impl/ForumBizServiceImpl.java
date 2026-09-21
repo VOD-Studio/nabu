@@ -19,15 +19,14 @@ import com.xfy.nabu.forum.mapper.TopicMapper;
 import com.xfy.nabu.forum.mq.CommentCreatedEvent;
 import com.xfy.nabu.forum.mq.TopicCreatedEvent;
 import com.xfy.nabu.forum.service.ForumBizService;
+import java.util.List;
+import java.util.stream.Collectors;
 import org.apache.dubbo.config.annotation.DubboReference;
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.apache.seata.spring.annotation.GlobalTransactional;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * 论坛业务实现：版块/帖子/评论的核心逻辑。
@@ -56,7 +55,8 @@ public class ForumBizServiceImpl implements ForumBizService {
     @DubboReference
     private UserService userService;
 
-    public ForumBizServiceImpl(TopicMapper topicMapper, CommentMapper commentMapper, RocketMQTemplate rocketMQTemplate) {
+    public ForumBizServiceImpl(
+            TopicMapper topicMapper, CommentMapper commentMapper, RocketMQTemplate rocketMQTemplate) {
         this.topicMapper = topicMapper;
         this.commentMapper = commentMapper;
         this.rocketMQTemplate = rocketMQTemplate;
@@ -92,8 +92,11 @@ public class ForumBizServiceImpl implements ForumBizService {
         topicMapper.insert(entity);
 
         // 发帖成功后异步发布 TopicCreatedEvent，供审核/搜索/统计服务消费，避免同步调用拖慢主流程。
-        TopicCreatedEvent event = new TopicCreatedEvent(entity.getId(), entity.getBoardId(), entity.getAuthorId(), entity.getTitle(), entity.getContent());
-        rocketMQTemplate.syncSend(TopicCreatedEvent.TOPIC, MessageBuilder.withPayload(JSON.toJSONString(event)).build());
+        TopicCreatedEvent event = new TopicCreatedEvent(
+                entity.getId(), entity.getBoardId(), entity.getAuthorId(), entity.getTitle(), entity.getContent());
+        rocketMQTemplate.syncSend(
+                TopicCreatedEvent.TOPIC,
+                MessageBuilder.withPayload(JSON.toJSONString(event)).build());
 
         return entity.getId();
     }
@@ -106,8 +109,8 @@ public class ForumBizServiceImpl implements ForumBizService {
         // 消费下面发布的 CommentCreatedEvent 完成，此处仅做快速拦截，不阻塞正常发帖体验。
         ModerationResultDTO moderationResult = moderationService.checkText(commentDTO.getContent());
         if (moderationResult != null && "REJECT".equals(moderationResult.getVerdict())) {
-            throw new BusinessException(ResultCode.PARAM_INVALID.getCode(),
-                    "评论内容审核不通过：" + moderationResult.getReason());
+            throw new BusinessException(
+                    ResultCode.PARAM_INVALID.getCode(), "评论内容审核不通过：" + moderationResult.getReason());
         }
 
         CommentEntity entity = new CommentEntity();
@@ -119,8 +122,11 @@ public class ForumBizServiceImpl implements ForumBizService {
         topicMapper.incrementCommentCount(commentDTO.getTopicId());
 
         // 发布 CommentCreatedEvent，供 moderation-service 异步复核、notify-service 发送 @回复通知等。
-        CommentCreatedEvent event = new CommentCreatedEvent(entity.getId(), entity.getTopicId(), entity.getAuthorId(), entity.getReplyToId(), entity.getContent());
-        rocketMQTemplate.syncSend(CommentCreatedEvent.TOPIC, MessageBuilder.withPayload(JSON.toJSONString(event)).build());
+        CommentCreatedEvent event = new CommentCreatedEvent(
+                entity.getId(), entity.getTopicId(), entity.getAuthorId(), entity.getReplyToId(), entity.getContent());
+        rocketMQTemplate.syncSend(
+                CommentCreatedEvent.TOPIC,
+                MessageBuilder.withPayload(JSON.toJSONString(event)).build());
 
         return entity.getId();
     }

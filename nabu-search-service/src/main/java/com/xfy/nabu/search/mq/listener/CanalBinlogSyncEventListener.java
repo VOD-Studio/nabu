@@ -4,17 +4,16 @@ import com.alibaba.fastjson2.JSON;
 import com.xfy.nabu.search.domain.TopicIndexDocument;
 import com.xfy.nabu.search.mq.event.CanalBinlogSyncEvent;
 import com.xfy.nabu.search.service.SearchBizService;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.Map;
 import org.apache.rocketmq.spring.annotation.ConsumeMode;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.util.Map;
 
 /**
  * 消费 "CanalBinlogSyncEvent"：这是 Canal Server 监听 nabu_forum 库 t_topic 表 binlog 后
@@ -42,16 +41,14 @@ import java.util.Map;
 @RocketMQMessageListener(
         topic = "CanalBinlogSyncEvent",
         consumerGroup = "CanalBinlogSyncEvent_SEARCH_CG",
-        consumeMode = ConsumeMode.CONCURRENTLY
-)
+        consumeMode = ConsumeMode.CONCURRENTLY)
 public class CanalBinlogSyncEventListener implements RocketMQListener<String> {
 
     private static final Logger log = LoggerFactory.getLogger(CanalBinlogSyncEventListener.class);
 
     private static final String TABLE_TOPIC = "t_topic";
 
-    private static final DateTimeFormatter DATETIME_FORMATTER =
-            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    private static final DateTimeFormatter DATETIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     private final SearchBizService searchBizService;
 

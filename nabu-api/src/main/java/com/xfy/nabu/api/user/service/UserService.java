@@ -3,7 +3,6 @@ package com.xfy.nabu.api.user.service;
 import com.xfy.nabu.api.user.dto.PointsChangeDTO;
 import com.xfy.nabu.api.user.dto.UserDTO;
 import com.xfy.nabu.api.user.dto.UserRegisterDTO;
-
 import java.util.List;
 
 /**

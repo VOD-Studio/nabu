@@ -23,8 +23,10 @@ public class SearchController {
      * 按关键词分页搜索帖子。
      */
     @GetMapping("/api/v1/search/topics")
-    public Result<PageResult<TopicSearchDocDTO>> searchTopics(@RequestParam("keyword") String keyword, PageQuery pageQuery) {
-        PageResult<TopicSearchDocDTO> pageResult = searchService.searchTopics(keyword, pageQuery.getPageNum(), pageQuery.getPageSize());
+    public Result<PageResult<TopicSearchDocDTO>> searchTopics(
+            @RequestParam("keyword") String keyword, PageQuery pageQuery) {
+        PageResult<TopicSearchDocDTO> pageResult =
+                searchService.searchTopics(keyword, pageQuery.getPageNum(), pageQuery.getPageSize());
         return Result.success(pageResult);
     }
 }

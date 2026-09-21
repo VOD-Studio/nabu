@@ -30,8 +30,7 @@ import org.springframework.stereotype.Component;
 @RocketMQMessageListener(
         topic = "CommentCreatedEvent",
         consumerGroup = "CommentCreatedEvent_NOTIFY_CG",
-        consumeMode = ConsumeMode.CONCURRENTLY
-)
+        consumeMode = ConsumeMode.CONCURRENTLY)
 public class CommentCreatedEventListener implements RocketMQListener<CommentCreatedEvent> {
 
     private static final Logger log = LoggerFactory.getLogger(CommentCreatedEventListener.class);

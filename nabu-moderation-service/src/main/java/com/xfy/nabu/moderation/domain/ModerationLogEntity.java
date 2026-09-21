@@ -9,9 +9,11 @@ public class ModerationLogEntity extends BaseEntity {
 
     /** 审核对象类型：TOPIC / COMMENT */
     private String targetType;
+
     private Long targetId;
     /** 审核结果：PASS / REJECT / REVIEW */
     private String verdict;
+
     private String reason;
 
     public String getTargetType() {

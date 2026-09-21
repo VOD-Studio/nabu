@@ -2,9 +2,9 @@ package com.xfy.nabu.common.exception;
 
 import com.xfy.nabu.common.result.Result;
 import com.xfy.nabu.common.result.ResultCode;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.validation.BindException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;

@@ -1,7 +1,6 @@
 package com.xfy.nabu.common.util;
 
 import com.alibaba.ttl.TransmittableThreadLocal;
-
 import java.util.UUID;
 
 /**
@@ -14,8 +13,7 @@ public final class TraceContext {
     private static final TransmittableThreadLocal<String> TRACE_ID = new TransmittableThreadLocal<>();
     private static final TransmittableThreadLocal<Long> USER_ID = new TransmittableThreadLocal<>();
 
-    private TraceContext() {
-    }
+    private TraceContext() {}
 
     public static String getTraceId() {
         return TRACE_ID.get();

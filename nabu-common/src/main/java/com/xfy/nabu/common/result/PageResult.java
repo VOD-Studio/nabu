@@ -16,8 +16,7 @@ public class PageResult<T> implements Serializable {
     private long pageNum;
     private long pageSize;
 
-    public PageResult() {
-    }
+    public PageResult() {}
 
     public PageResult(List<T> records, long total, long pageNum, long pageSize) {
         this.records = records;

@@ -1,10 +1,9 @@
 package com.xfy.nabu.forum.mapper;
 
 import com.xfy.nabu.forum.domain.TopicEntity;
+import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
-
-import java.util.List;
 
 /**
  * 帖子 Mapper。
@@ -17,9 +16,8 @@ public interface TopicMapper {
     /**
      * 分页查询某版块下的帖子：pinned=1 的置顶帖排在最前，其余按 created_at desc 排列。
      */
-    List<TopicEntity> listByBoard(@Param("boardId") Long boardId,
-                                   @Param("offset") long offset,
-                                   @Param("limit") long limit);
+    List<TopicEntity> listByBoard(
+            @Param("boardId") Long boardId, @Param("offset") long offset, @Param("limit") long limit);
 
     long countByBoard(@Param("boardId") Long boardId);
 

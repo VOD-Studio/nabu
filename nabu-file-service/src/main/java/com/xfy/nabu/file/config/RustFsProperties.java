@@ -10,6 +10,7 @@ public class RustFsProperties {
 
     /** S3 兼容 API 地址 */
     private String endpoint = "http://127.0.0.1:9000";
+
     private String accessKey = "rustfsadmin";
     private String secretKey = "rustfsadmin";
     private String bucket = "nabu-files";

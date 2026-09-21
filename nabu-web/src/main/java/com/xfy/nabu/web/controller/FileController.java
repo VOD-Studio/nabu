@@ -28,8 +28,8 @@ public class FileController {
     @PostMapping("/api/v1/files/presign")
     public Result<PresignedUploadDTO> presign(@RequestBody PresignUploadRequest request) {
         Long uploaderId = TraceContext.getUserId();
-        PresignedUploadDTO presignedUploadDTO = fileService.createPresignedUpload(
-                uploaderId, request.getOriginalName(), request.getContentType());
+        PresignedUploadDTO presignedUploadDTO =
+                fileService.createPresignedUpload(uploaderId, request.getOriginalName(), request.getContentType());
         return Result.success(presignedUploadDTO);
     }
 
@@ -40,8 +40,11 @@ public class FileController {
     public Result<FileMetaDTO> confirm(@RequestBody ConfirmUploadRequest request) {
         Long uploaderId = TraceContext.getUserId();
         FileMetaDTO fileMetaDTO = fileService.confirmUpload(
-                uploaderId, request.getObjectKey(), request.getOriginalName(),
-                request.getContentType(), request.getSizeBytes());
+                uploaderId,
+                request.getObjectKey(),
+                request.getOriginalName(),
+                request.getContentType(),
+                request.getSizeBytes());
         return Result.success(fileMetaDTO);
     }
 }

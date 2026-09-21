@@ -19,8 +19,7 @@ public class CommentCreatedEvent implements Serializable {
     /** 评论正文：供审核等下游消费者直接取用 */
     private String content;
 
-    public CommentCreatedEvent() {
-    }
+    public CommentCreatedEvent() {}
 
     public CommentCreatedEvent(Long commentId, Long topicId, Long authorId, Long replyToId, String content) {
         this.commentId = commentId;

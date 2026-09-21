@@ -28,7 +28,8 @@ public class NotifyController {
     @GetMapping("/api/v1/notifications")
     public Result<PageResult<NotificationDTO>> list(PageQuery pageQuery) {
         Long userId = TraceContext.getUserId();
-        PageResult<NotificationDTO> pageResult = notifyService.listByReceiver(userId, pageQuery.getPageNum(), pageQuery.getPageSize());
+        PageResult<NotificationDTO> pageResult =
+                notifyService.listByReceiver(userId, pageQuery.getPageNum(), pageQuery.getPageSize());
         return Result.success(pageResult);
     }
 

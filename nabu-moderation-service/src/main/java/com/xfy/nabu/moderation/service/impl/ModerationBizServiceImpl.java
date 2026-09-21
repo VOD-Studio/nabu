@@ -5,9 +5,8 @@ import com.xfy.nabu.moderation.config.ModerationProperties;
 import com.xfy.nabu.moderation.domain.ModerationLogEntity;
 import com.xfy.nabu.moderation.mapper.ModerationLogMapper;
 import com.xfy.nabu.moderation.service.ModerationBizService;
-import org.springframework.stereotype.Service;
-
 import java.util.List;
+import org.springframework.stereotype.Service;
 
 /**
  * 极简敏感词过滤实现：命中 {@link ModerationProperties#getSensitiveWords()} 里的任意词即判 REJECT。
@@ -21,8 +20,8 @@ public class ModerationBizServiceImpl implements ModerationBizService {
     private final ModerationProperties moderationProperties;
     private final ModerationLogMapper moderationLogMapper;
 
-    public ModerationBizServiceImpl(ModerationProperties moderationProperties,
-                                     ModerationLogMapper moderationLogMapper) {
+    public ModerationBizServiceImpl(
+            ModerationProperties moderationProperties, ModerationLogMapper moderationLogMapper) {
         this.moderationProperties = moderationProperties;
         this.moderationLogMapper = moderationLogMapper;
     }

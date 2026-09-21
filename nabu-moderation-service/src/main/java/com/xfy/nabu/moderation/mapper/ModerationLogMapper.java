@@ -2,7 +2,6 @@ package com.xfy.nabu.moderation.mapper;
 
 import com.xfy.nabu.moderation.domain.ModerationLogEntity;
 import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Param;
 
 @Mapper
 public interface ModerationLogMapper {

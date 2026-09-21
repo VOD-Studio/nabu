@@ -7,14 +7,13 @@ import com.xfy.nabu.social.constant.SocialRedisKeys;
 import com.xfy.nabu.social.mq.event.TopicLikedEvent;
 import com.xfy.nabu.social.mq.event.UserFollowedEvent;
 import com.xfy.nabu.social.service.SocialBizService;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
-
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 
 /**
  * 点赞/收藏/关注/签到业务实现。全部基于 Redis 原生数据结构，不落 MySQL：
@@ -34,6 +33,7 @@ public class SocialBizServiceImpl implements SocialBizService {
 
     /** MQ topic 名固定为类名字符串，方便下游按同名 Consumer Group 订阅 */
     private static final String MQ_TOPIC_LIKED = "TopicLikedEvent";
+
     private static final String MQ_TOPIC_FOLLOWED = "UserFollowedEvent";
 
     private final StringRedisTemplate redisTemplate;
@@ -58,8 +58,11 @@ public class SocialBizServiceImpl implements SocialBizService {
         if (TARGET_TYPE_TOPIC.equals(event.getTargetType())) {
             TopicLikedEvent mqEvent = new TopicLikedEvent(event.getTargetId(), event.getUserId(), event.isLiked());
             rocketMQTemplate.convertAndSend(MQ_TOPIC_LIKED, mqEvent);
-            log.info("发布 TopicLikedEvent: targetId={}, userId={}, liked={}",
-                    event.getTargetId(), event.getUserId(), event.isLiked());
+            log.info(
+                    "发布 TopicLikedEvent: targetId={}, userId={}, liked={}",
+                    event.getTargetId(),
+                    event.getUserId(),
+                    event.isLiked());
         }
     }
 

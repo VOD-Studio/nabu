@@ -17,6 +17,7 @@ public class TopicDTO implements Serializable {
     private Integer pinned;
     /** 状态：0-正常，1-审核中，2-已屏蔽 */
     private Integer status;
+
     private LocalDateTime createdAt;
 
     public Long getId() {

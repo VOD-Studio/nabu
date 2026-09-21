@@ -24,7 +24,8 @@ public class FileServiceDubboImpl implements FileService {
     }
 
     @Override
-    public FileMetaDTO confirmUpload(Long uploaderId, String objectKey, String originalName, String contentType, long sizeBytes) {
+    public FileMetaDTO confirmUpload(
+            Long uploaderId, String objectKey, String originalName, String contentType, long sizeBytes) {
         return fileBizService.confirmUpload(uploaderId, objectKey, originalName, contentType, sizeBytes);
     }
 

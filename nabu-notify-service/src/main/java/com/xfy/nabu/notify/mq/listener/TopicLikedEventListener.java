@@ -27,8 +27,7 @@ import org.springframework.stereotype.Component;
 @RocketMQMessageListener(
         topic = "TopicLikedEvent",
         consumerGroup = "TopicLikedEvent_NOTIFY_CG",
-        consumeMode = ConsumeMode.CONCURRENTLY
-)
+        consumeMode = ConsumeMode.CONCURRENTLY)
 public class TopicLikedEventListener implements RocketMQListener<TopicLikedEvent> {
 
     private static final Logger log = LoggerFactory.getLogger(TopicLikedEventListener.class);

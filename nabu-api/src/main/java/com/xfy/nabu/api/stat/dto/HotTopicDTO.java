@@ -7,8 +7,7 @@ public class HotTopicDTO implements Serializable {
     private Long topicId;
     private double score;
 
-    public HotTopicDTO() {
-    }
+    public HotTopicDTO() {}
 
     public HotTopicDTO(Long topicId, double score) {
         this.topicId = topicId;

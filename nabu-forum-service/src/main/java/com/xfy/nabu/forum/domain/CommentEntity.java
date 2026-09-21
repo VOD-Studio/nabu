@@ -11,6 +11,7 @@ public class CommentEntity extends BaseEntity {
     private Long authorId;
     /** 被回复的评论 id，楼层评论为 null */
     private Long replyToId;
+
     private String content;
 
     public Long getTopicId() {

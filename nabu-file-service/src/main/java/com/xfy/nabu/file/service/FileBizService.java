@@ -10,7 +10,8 @@ public interface FileBizService {
 
     PresignedUploadDTO createPresignedUpload(Long uploaderId, String originalName, String contentType);
 
-    FileMetaDTO confirmUpload(Long uploaderId, String objectKey, String originalName, String contentType, long sizeBytes);
+    FileMetaDTO confirmUpload(
+            Long uploaderId, String objectKey, String originalName, String contentType, long sizeBytes);
 
     FileMetaDTO getById(Long fileId);
 

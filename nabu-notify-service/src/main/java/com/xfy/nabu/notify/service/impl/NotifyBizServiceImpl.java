@@ -5,12 +5,11 @@ import com.xfy.nabu.common.result.PageResult;
 import com.xfy.nabu.notify.domain.NotificationEntity;
 import com.xfy.nabu.notify.mapper.NotificationMapper;
 import com.xfy.nabu.notify.service.NotifyBizService;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class NotifyBizServiceImpl implements NotifyBizService {
@@ -26,7 +25,8 @@ public class NotifyBizServiceImpl implements NotifyBizService {
         long offset = (pageNum - 1) * pageSize;
         List<NotificationEntity> entities = notificationMapper.selectByReceiver(receiverId, offset, pageSize);
         long total = notificationMapper.countByReceiver(receiverId);
-        List<NotificationDTO> dtoList = entities == null ? Collections.emptyList()
+        List<NotificationDTO> dtoList = entities == null
+                ? Collections.emptyList()
                 : entities.stream().map(this::toDTO).collect(Collectors.toList());
         return new PageResult<>(dtoList, total, pageNum, pageSize);
     }

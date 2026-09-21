@@ -6,6 +6,8 @@ import com.xfy.nabu.common.result.PageResult;
 import com.xfy.nabu.search.domain.TopicIndexDocument;
 import com.xfy.nabu.search.repository.TopicIndexRepository;
 import com.xfy.nabu.search.service.SearchBizService;
+import java.util.List;
+import java.util.stream.Collectors;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.elasticsearch.client.elc.NativeQuery;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
@@ -13,18 +15,14 @@ import org.springframework.data.elasticsearch.core.SearchHit;
 import org.springframework.data.elasticsearch.core.SearchHits;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
-
 @Service
 public class SearchBizServiceImpl implements SearchBizService {
 
     private final ElasticsearchOperations elasticsearchOperations;
     private final TopicIndexRepository topicIndexRepository;
 
-    public SearchBizServiceImpl(ElasticsearchOperations elasticsearchOperations,
-                                 TopicIndexRepository topicIndexRepository) {
+    public SearchBizServiceImpl(
+            ElasticsearchOperations elasticsearchOperations, TopicIndexRepository topicIndexRepository) {
         this.elasticsearchOperations = elasticsearchOperations;
         this.topicIndexRepository = topicIndexRepository;
     }
@@ -35,10 +33,7 @@ public class SearchBizServiceImpl implements SearchBizService {
             return PageResult.empty(pageNum, pageSize);
         }
         // multi_match：title + content 两个字段联合匹配，title 权重（boost）更高
-        Query multiMatchQuery = Query.of(q -> q.multiMatch(m -> m
-                .query(keyword)
-                .fields("title^3", "content")
-        ));
+        Query multiMatchQuery = Query.of(q -> q.multiMatch(m -> m.query(keyword).fields("title^3", "content")));
         NativeQuery nativeQuery = NativeQuery.builder()
                 .withQuery(multiMatchQuery)
                 .withPageable(PageRequest.of((int) (pageNum - 1), (int) pageSize))

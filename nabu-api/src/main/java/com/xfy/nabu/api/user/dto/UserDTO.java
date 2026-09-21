@@ -16,6 +16,7 @@ public class UserDTO implements Serializable {
     private Integer points;
     /** 账号状态：0-正常，1-禁用 */
     private Integer status;
+
     private LocalDateTime createdAt;
 
     public Long getId() {

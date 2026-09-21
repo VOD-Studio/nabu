@@ -3,11 +3,10 @@ package com.xfy.nabu.admin.controller;
 import com.xfy.nabu.api.stat.dto.HotTopicDTO;
 import com.xfy.nabu.api.stat.service.StatService;
 import com.xfy.nabu.common.result.Result;
+import java.util.List;
 import org.apache.dubbo.config.annotation.DubboReference;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
 
 /**
  * 后台管理端 - 数据看板示例接口。

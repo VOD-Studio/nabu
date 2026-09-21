@@ -6,6 +6,7 @@ public class ModerationResultDTO implements Serializable {
 
     /** 结果：PASS / REJECT / REVIEW（转人工审核） */
     private String verdict;
+
     private String reason;
 
     public String getVerdict() {

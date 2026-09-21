@@ -3,14 +3,13 @@ package com.xfy.nabu.stat.service.impl;
 import com.xfy.nabu.api.stat.dto.HotTopicDTO;
 import com.xfy.nabu.stat.constant.StatRedisKeys;
 import com.xfy.nabu.stat.service.StatBizService;
-import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.data.redis.core.ZSetOperations;
-import org.springframework.stereotype.Service;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.ZSetOperations;
+import org.springframework.stereotype.Service;
 
 /**
  * 话题 PV/UV/热门排行统计业务实现。全部基于 Redis 原生数据结构，不落 MySQL：
@@ -42,7 +41,9 @@ public class StatBizServiceImpl implements StatBizService {
             redisTemplate.opsForHyperLogLog().add(StatRedisKeys.uvKey(topicId), String.valueOf(viewerUserId));
         }
 
-        redisTemplate.opsForZSet().incrementScore(StatRedisKeys.HOT_TOPICS_KEY, String.valueOf(topicId), HOT_SCORE_INCREMENT);
+        redisTemplate
+                .opsForZSet()
+                .incrementScore(StatRedisKeys.HOT_TOPICS_KEY, String.valueOf(topicId), HOT_SCORE_INCREMENT);
     }
 
     @Override
@@ -66,8 +67,8 @@ public class StatBizServiceImpl implements StatBizService {
             return Collections.emptyList();
         }
         return tuples.stream()
-                .map(tuple -> new HotTopicDTO(Long.valueOf(tuple.getValue()),
-                        tuple.getScore() == null ? 0d : tuple.getScore()))
+                .map(tuple -> new HotTopicDTO(
+                        Long.valueOf(tuple.getValue()), tuple.getScore() == null ? 0d : tuple.getScore()))
                 .collect(Collectors.toList());
     }
 }

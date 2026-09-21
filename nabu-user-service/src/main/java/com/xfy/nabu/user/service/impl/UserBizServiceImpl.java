@@ -8,12 +8,11 @@ import com.xfy.nabu.common.result.ResultCode;
 import com.xfy.nabu.user.domain.UserEntity;
 import com.xfy.nabu.user.mapper.UserMapper;
 import com.xfy.nabu.user.service.UserBizService;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class UserBizServiceImpl implements UserBizService {

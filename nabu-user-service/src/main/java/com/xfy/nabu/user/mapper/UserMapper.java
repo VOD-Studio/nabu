@@ -1,10 +1,9 @@
 package com.xfy.nabu.user.mapper;
 
 import com.xfy.nabu.user.domain.UserEntity;
+import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
-
-import java.util.List;
 
 @Mapper
 public interface UserMapper {

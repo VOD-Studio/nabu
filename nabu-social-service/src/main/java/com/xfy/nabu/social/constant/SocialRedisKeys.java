@@ -5,8 +5,7 @@ package com.xfy.nabu.social.constant;
  */
 public final class SocialRedisKeys {
 
-    private SocialRedisKeys() {
-    }
+    private SocialRedisKeys() {}
 
     /**
      * 某个业务目标（话题/评论）的点赞用户集合，Redis Set，member 为 userId。

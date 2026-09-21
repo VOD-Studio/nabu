@@ -3,9 +3,8 @@ package com.xfy.nabu.stat.dubbo;
 import com.xfy.nabu.api.stat.dto.HotTopicDTO;
 import com.xfy.nabu.api.stat.service.StatService;
 import com.xfy.nabu.stat.service.StatBizService;
-import org.apache.dubbo.config.annotation.DubboService;
-
 import java.util.List;
+import org.apache.dubbo.config.annotation.DubboService;
 
 /**
  * Dubbo Provider：对外暴露 {@link StatService}，内部转发给 {@link StatBizService}。

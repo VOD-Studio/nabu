@@ -6,6 +6,7 @@ public class LikeEventDTO implements Serializable {
 
     /** 目标类型：TOPIC / COMMENT */
     private String targetType;
+
     private Long targetId;
     private Long userId;
     private boolean liked;

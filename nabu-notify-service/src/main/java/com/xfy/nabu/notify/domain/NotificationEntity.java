@@ -7,6 +7,7 @@ public class NotificationEntity extends BaseEntity {
     private Long receiverId;
     /** 通知类型：COMMENT_REPLY / LIKE / MENTION / SYSTEM / FOLLOW */
     private String type;
+
     private String content;
     private String linkUrl;
     /** 是否已读：0-未读，1-已读 */

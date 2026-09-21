@@ -8,12 +8,11 @@ import com.xfy.nabu.common.constant.CommonConstants;
 import com.xfy.nabu.common.exception.BusinessException;
 import com.xfy.nabu.common.result.ResultCode;
 import io.jsonwebtoken.Claims;
+import java.time.Duration;
 import org.apache.dubbo.config.annotation.DubboReference;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import java.time.Duration;
 
 @Service
 public class AuthBizServiceImpl implements AuthBizService {
@@ -28,9 +27,8 @@ public class AuthBizServiceImpl implements AuthBizService {
     private final JwtTokenProvider jwtTokenProvider;
     private final StringRedisTemplate redisTemplate;
 
-    public AuthBizServiceImpl(PasswordEncoder passwordEncoder,
-                               JwtTokenProvider jwtTokenProvider,
-                               StringRedisTemplate redisTemplate) {
+    public AuthBizServiceImpl(
+            PasswordEncoder passwordEncoder, JwtTokenProvider jwtTokenProvider, StringRedisTemplate redisTemplate) {
         this.passwordEncoder = passwordEncoder;
         this.jwtTokenProvider = jwtTokenProvider;
         this.redisTemplate = redisTemplate;
@@ -95,10 +93,12 @@ public class AuthBizServiceImpl implements AuthBizService {
         String accessToken = jwtTokenProvider.generateAccessToken(userId, accessJti);
         String refreshToken = jwtTokenProvider.generateRefreshToken(userId, refreshJti);
 
-        redisTemplate.opsForValue().set(
-                refreshKey(userId, refreshJti),
-                refreshToken,
-                Duration.ofSeconds(jwtTokenProvider.refreshTokenExpireSeconds()));
+        redisTemplate
+                .opsForValue()
+                .set(
+                        refreshKey(userId, refreshJti),
+                        refreshToken,
+                        Duration.ofSeconds(jwtTokenProvider.refreshTokenExpireSeconds()));
 
         return new TokenPairDTO(accessToken, refreshToken, jwtTokenProvider.accessTokenExpireSeconds());
     }

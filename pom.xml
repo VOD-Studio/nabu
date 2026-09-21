@@ -73,6 +73,10 @@
 
         <!-- 测试 -->
         <testcontainers.version>1.20.6</testcontainers.version>
+
+        <!-- 代码格式化：Spotless（用法见 README 的「代码格式化」一节） -->
+        <spotless.version>3.10.2</spotless.version>
+        <palantir-java-format.version>2.98.0</palantir-java-format.version>
     </properties>
 
     <dependencyManagement>
@@ -245,5 +249,49 @@
                 </plugin>
             </plugins>
         </pluginManagement>
+
+        <plugins>
+            <!--
+              统一代码格式化，对标 biome cli 的用法：
+                mvn spotless:apply   # 格式化全部代码，对标 biome format -w
+                mvn spotless:check   # 只校验不改文件，CI 门禁，对标 biome check
+              只在这里声明一次，14 个模块自动继承，各自的 src/main/java、src/test/java 都会被处理。
+              默认不绑定到 build 生命周期，格式化是显式动作；需要门禁时把下面的 check execution 打开即可。
+            -->
+            <plugin>
+                <groupId>com.diffplug.spotless</groupId>
+                <artifactId>spotless-maven-plugin</artifactId>
+                <version>${spotless.version}</version>
+                <configuration>
+                    <!-- 固定 UNIX(LF) 换行，不受 .gitattributes / 操作系统默认换行影响 -->
+                    <lineEndings>UNIX</lineEndings>
+                    <java>
+                        <palantirJavaFormat>
+                            <version>${palantir-java-format.version}</version>
+                            <!-- PALANTIR = 4 空格缩进 / 120 列，与仓库现状一致；另有 GOOGLE(2 空格/100) 与 AOSP(4 空格/100) -->
+                            <style>PALANTIR</style>
+                            <!-- 不重排 Javadoc：本项目注释大量中文，重排会产生无意义的大 diff -->
+                            <formatJavadoc>false</formatJavadoc>
+                        </palantirJavaFormat>
+                        <removeUnusedImports/>
+                        <trimTrailingWhitespace/>
+                        <endWithNewline/>
+                        <!-- 需要临时豁免某段代码时，用 // @formatter:off / // @formatter:on 包住 -->
+                        <toggleOffOn/>
+                    </java>
+                </configuration>
+                <executions>
+                    <!-- 打开后 mvn validate/verify 会自动做格式门禁
+                    <execution>
+                        <id>spotless-check</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                    -->
+                </executions>
+            </plugin>
+        </plugins>
     </build>
 </project>

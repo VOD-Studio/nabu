@@ -10,5 +10,4 @@ import org.springframework.stereotype.Repository;
  * {@link com.xfy.nabu.search.service.impl.SearchBizServiceImpl} 直接使用 {@code ElasticsearchOperations} 完成。
  */
 @Repository
-public interface TopicIndexRepository extends ElasticsearchRepository<TopicIndexDocument, String> {
-}
+public interface TopicIndexRepository extends ElasticsearchRepository<TopicIndexDocument, String> {}

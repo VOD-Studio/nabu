@@ -11,8 +11,7 @@ public class TokenPairDTO implements Serializable {
     private String refreshToken;
     private long accessTokenExpiresIn;
 
-    public TokenPairDTO() {
-    }
+    public TokenPairDTO() {}
 
     public TokenPairDTO(String accessToken, String refreshToken, long accessTokenExpiresIn) {
         this.accessToken = accessToken;
