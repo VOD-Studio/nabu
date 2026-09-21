@@ -137,10 +137,12 @@ cd deploy
 1. **内存**：`compose.app.yml` 给每个应用容器设了 `mem_limit: ${APP_MEM_LIMIT:-1g}` 和
    `JAVA_OPTS=${JAVA_OPTS:--XX:MaxRAMPercentage=60 -XX:+ExitOnOutOfMemoryError}`。
    12 个全起 + 基础设施 + 中间件 + 可观测性栈仍然需要 8G 以上，Docker Desktop 内存不足时
-   按需起子集：`docker compose ... up -d nabu-user-service nabu-web`。
+   按需起子集：`./scripts/up.sh all nabu-user-service nabu-web`。模式后的参数是 Compose 服务名，
+   只启动这些服务及其声明的依赖；已经运行的其他服务不会自动停止。
 2. **就绪门控**：`depends_on` 已带 `condition` —— MySQL/Redis/ES/RustFS/Nacos 有 healthcheck，
-   用 `service_healthy` 等真正可用；RocketMQ/Seata 镜像没有 healthcheck，只能 `service_started`，
-   首次联调若遇到连接报错，等 broker 起来后重启对应服务即可。
+   MySQL 使用业务账号通过 TCP 查询业务库，Seata 检查事务端口；相关应用等待它们健康后启动。
+   RocketMQ Broker 还需在 NameServer 中注册并激活，Proxy 和消费者才会继续启动。
+   `Started` 只表示进程已启动，还需检查应用的 `/actuator/health` 和启动日志。
 3. **不要裸机与容器混跑**：`compose.app.yml` 只映射 HTTP `1808x`，没有映射 Dubbo Triple 的
    `2808x`，容器内 provider 注册到 Nacos 的是 `172.x` 内网地址，宿主机进程访问不到。
    要混跑就补映射并用 `DUBBO_IP_TO_REGISTRY` 指定注册地址，否则统一选一种方式。
@@ -157,6 +159,40 @@ cd deploy
 ./scripts/down.sh
 ```
 
+**约 6 GiB Docker 内存的分组联调**：切换组前先运行 `./scripts/down.sh`，它保留数据库目录和数据卷。
+不要同时运行以下所有组，也不要在服务运行时并发构建全部镜像。
+
+```bash
+# 用户、认证与 BFF
+./scripts/up.sh all nabu-user-service nabu-auth-service nabu-web
+
+# 文件存储
+./scripts/up.sh all nabu-file-service
+
+# 日志、链路和管理面板
+./scripts/up.sh all otel-collector grafana
+```
+
+内存有限时，在仓库根目录逐个构建镜像后再分组启动：
+
+```bash
+for module in nabu-*-service nabu-web; do
+  docker build --build-arg MODULE="$module" -t "nabu-$module" . || break
+done
+```
+
+首次创建空业务库时，user/forum 会先用独立连接执行 Flyway，再创建 Seata 代理数据源，
+保证 `undo_log` 已存在。若旧 MySQL 初始化失败，先停止实例并完整备份对应的
+`deploy/data/mysql-*` 目录，再处理恢复或重新初始化；不要直接清空有业务数据的目录。
+
+本地 Compose 默认 `DUBBO_CONSUMER_CHECK=false`，允许消费者在部分 Provider 未启动时运行；
+未启动服务对应的功能仍不可用，实际调用会报错。要检查完整 RPC 依赖，可在启动前设置
+`DUBBO_CONSUMER_CHECK=true`。`NACOS_ADDRESS` 只填写主机名，端口由应用配置补齐。
+
+RustFS 1.0.0、Tempo 3.0.0、Collector 0.161.0 的镜像使用 digest 固定。
+RustFS 的四个目录在本地共用 Docker 虚拟磁盘，因此只在此开发编排中开启磁盘检查豁免；
+生产必须使用独立物理磁盘。Nacos 的默认鉴权材料也仅用于本地，生产需覆盖并启用鉴权。
+
 ### 3. 关键管理入口
 
 | 用途 | 地址 |
@@ -164,7 +200,7 @@ cd deploy
 | Nacos 控制台 | http://localhost:8849/（Nacos 3 独立控制台；服务 API 仍为 8848） |
 | Sentinel Dashboard | http://localhost:8858（sentinel/sentinel） |
 | RocketMQ Dashboard | http://localhost:9878 |
-| Seata（TC）控制端口 | localhost:7091 |
+| Seata（TC）事务端口 | localhost:8091（当前镜像不提供旧版 7091 控制台） |
 | RustFS Console | http://localhost:9001 |
 | Elasticsearch | http://localhost:9200 |
 | Grafana | http://localhost:3000（admin/admin123） |

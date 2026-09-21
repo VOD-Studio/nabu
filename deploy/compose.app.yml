@@ -35,6 +35,8 @@ services:
       # Dockerfile 的 ENTRYPOINT 会展开 $JAVA_OPTS：堆按容器上限自适应，
       # OOM 时直接退出交给 restart 策略，而不是拖死整个 Docker VM
       - "JAVA_OPTS=${JAVA_OPTS:--XX:MaxRAMPercentage=60 -XX:+ExitOnOutOfMemoryError}"
+      # 本地允许分组启动；缺失的 RPC 提供者仍会在调用时报告不可用。
+      - DUBBO_CONSUMER_CHECK=${DUBBO_CONSUMER_CHECK:-false}
       - NACOS_ADDRESS=${NACOS_ADDRESS}
       - SENTINEL_DASHBOARD=${SENTINEL_DASHBOARD}
       - SEATA_ADDRESS=${SEATA_ADDRESS}
@@ -45,11 +47,12 @@ services:
       - MYSQL_USER_PORT=${MYSQL_USER_PORT}
       - MYSQL_USER_USERNAME=${MYSQL_USER_USERNAME}
       - MYSQL_USER_PASSWORD=${MYSQL_USER_PASSWORD}
-    # 依赖就绪门控：下列 9 个基础设施/中间件在各自 compose 文件里已定义 healthcheck，
-    # 用 service_healthy 等它真正可用（不再靠重启撞运气）；RocketMQ / Seata 镜像
-    # 未定义 healthcheck，只能退一步用 service_started。
+    # 有健康检查的依赖等待 service_healthy；其余依赖等待进程启动。
+    # 分组联调时只拉起本服务声明的依赖。
     depends_on:
       mysql-user:
+        condition: service_healthy
+      seata-server:
         condition: service_healthy
       redis:
         condition: service_healthy
@@ -73,13 +76,14 @@ services:
       # Dockerfile 的 ENTRYPOINT 会展开 $JAVA_OPTS：堆按容器上限自适应，
       # OOM 时直接退出交给 restart 策略，而不是拖死整个 Docker VM
       - "JAVA_OPTS=${JAVA_OPTS:--XX:MaxRAMPercentage=60 -XX:+ExitOnOutOfMemoryError}"
+      # 本地允许分组启动；缺失的 RPC 提供者仍会在调用时报告不可用。
+      - DUBBO_CONSUMER_CHECK=${DUBBO_CONSUMER_CHECK:-false}
       - NACOS_ADDRESS=${NACOS_ADDRESS}
       - SENTINEL_DASHBOARD=${SENTINEL_DASHBOARD}
       - REDIS_HOST=${REDIS_HOST}
       - REDIS_PORT=${REDIS_PORT}
-    # 依赖就绪门控：下列 9 个基础设施/中间件在各自 compose 文件里已定义 healthcheck，
-    # 用 service_healthy 等它真正可用（不再靠重启撞运气）；RocketMQ / Seata 镜像
-    # 未定义 healthcheck，只能退一步用 service_started。
+    # 有健康检查的依赖等待 service_healthy；其余依赖等待进程启动。
+    # 分组联调时只拉起本服务声明的依赖。
     depends_on:
       redis:
         condition: service_healthy
@@ -103,6 +107,8 @@ services:
       # Dockerfile 的 ENTRYPOINT 会展开 $JAVA_OPTS：堆按容器上限自适应，
       # OOM 时直接退出交给 restart 策略，而不是拖死整个 Docker VM
       - "JAVA_OPTS=${JAVA_OPTS:--XX:MaxRAMPercentage=60 -XX:+ExitOnOutOfMemoryError}"
+      # 本地允许分组启动；缺失的 RPC 提供者仍会在调用时报告不可用。
+      - DUBBO_CONSUMER_CHECK=${DUBBO_CONSUMER_CHECK:-false}
       - NACOS_ADDRESS=${NACOS_ADDRESS}
       - SENTINEL_DASHBOARD=${SENTINEL_DASHBOARD}
       - SEATA_ADDRESS=${SEATA_ADDRESS}
@@ -113,9 +119,8 @@ services:
       - MYSQL_FORUM_PORT=${MYSQL_FORUM_PORT}
       - MYSQL_FORUM_USERNAME=${MYSQL_FORUM_USERNAME}
       - MYSQL_FORUM_PASSWORD=${MYSQL_FORUM_PASSWORD}
-    # 依赖就绪门控：下列 9 个基础设施/中间件在各自 compose 文件里已定义 healthcheck，
-    # 用 service_healthy 等它真正可用（不再靠重启撞运气）；RocketMQ / Seata 镜像
-    # 未定义 healthcheck，只能退一步用 service_started。
+    # 有健康检查的依赖等待 service_healthy；其余依赖等待进程启动。
+    # 分组联调时只拉起本服务声明的依赖。
     depends_on:
       mysql-forum:
         condition: service_healthy
@@ -124,9 +129,11 @@ services:
       nacos:
         condition: service_healthy
       rmqnamesrv:
-        condition: service_started
+        condition: service_healthy
+      rmqbroker:
+        condition: service_healthy
       seata-server:
-        condition: service_started
+        condition: service_healthy
     networks: [nabu-net]
 
   nabu-social-service:
@@ -145,21 +152,24 @@ services:
       # Dockerfile 的 ENTRYPOINT 会展开 $JAVA_OPTS：堆按容器上限自适应，
       # OOM 时直接退出交给 restart 策略，而不是拖死整个 Docker VM
       - "JAVA_OPTS=${JAVA_OPTS:--XX:MaxRAMPercentage=60 -XX:+ExitOnOutOfMemoryError}"
+      # 本地允许分组启动；缺失的 RPC 提供者仍会在调用时报告不可用。
+      - DUBBO_CONSUMER_CHECK=${DUBBO_CONSUMER_CHECK:-false}
       - NACOS_ADDRESS=${NACOS_ADDRESS}
       - SENTINEL_DASHBOARD=${SENTINEL_DASHBOARD}
       - ROCKETMQ_NAMESRV=${ROCKETMQ_NAMESRV}
       - REDIS_HOST=${REDIS_HOST}
       - REDIS_PORT=${REDIS_PORT}
-    # 依赖就绪门控：下列 9 个基础设施/中间件在各自 compose 文件里已定义 healthcheck，
-    # 用 service_healthy 等它真正可用（不再靠重启撞运气）；RocketMQ / Seata 镜像
-    # 未定义 healthcheck，只能退一步用 service_started。
+    # 有健康检查的依赖等待 service_healthy；其余依赖等待进程启动。
+    # 分组联调时只拉起本服务声明的依赖。
     depends_on:
       redis:
         condition: service_healthy
       nacos:
         condition: service_healthy
       rmqnamesrv:
-        condition: service_started
+        condition: service_healthy
+      rmqbroker:
+        condition: service_healthy
     networks: [nabu-net]
 
   nabu-notify-service:
@@ -178,6 +188,8 @@ services:
       # Dockerfile 的 ENTRYPOINT 会展开 $JAVA_OPTS：堆按容器上限自适应，
       # OOM 时直接退出交给 restart 策略，而不是拖死整个 Docker VM
       - "JAVA_OPTS=${JAVA_OPTS:--XX:MaxRAMPercentage=60 -XX:+ExitOnOutOfMemoryError}"
+      # 本地允许分组启动；缺失的 RPC 提供者仍会在调用时报告不可用。
+      - DUBBO_CONSUMER_CHECK=${DUBBO_CONSUMER_CHECK:-false}
       - NACOS_ADDRESS=${NACOS_ADDRESS}
       - SENTINEL_DASHBOARD=${SENTINEL_DASHBOARD}
       - ROCKETMQ_NAMESRV=${ROCKETMQ_NAMESRV}
@@ -185,16 +197,17 @@ services:
       - MYSQL_NOTIFY_PORT=${MYSQL_NOTIFY_PORT}
       - MYSQL_NOTIFY_USERNAME=${MYSQL_NOTIFY_USERNAME}
       - MYSQL_NOTIFY_PASSWORD=${MYSQL_NOTIFY_PASSWORD}
-    # 依赖就绪门控：下列 9 个基础设施/中间件在各自 compose 文件里已定义 healthcheck，
-    # 用 service_healthy 等它真正可用（不再靠重启撞运气）；RocketMQ / Seata 镜像
-    # 未定义 healthcheck，只能退一步用 service_started。
+    # 有健康检查的依赖等待 service_healthy；其余依赖等待进程启动。
+    # 分组联调时只拉起本服务声明的依赖。
     depends_on:
       mysql-notify:
         condition: service_healthy
       nacos:
         condition: service_healthy
       rmqnamesrv:
-        condition: service_started
+        condition: service_healthy
+      rmqbroker:
+        condition: service_healthy
     networks: [nabu-net]
 
   nabu-search-service:
@@ -213,20 +226,23 @@ services:
       # Dockerfile 的 ENTRYPOINT 会展开 $JAVA_OPTS：堆按容器上限自适应，
       # OOM 时直接退出交给 restart 策略，而不是拖死整个 Docker VM
       - "JAVA_OPTS=${JAVA_OPTS:--XX:MaxRAMPercentage=60 -XX:+ExitOnOutOfMemoryError}"
+      # 本地允许分组启动；缺失的 RPC 提供者仍会在调用时报告不可用。
+      - DUBBO_CONSUMER_CHECK=${DUBBO_CONSUMER_CHECK:-false}
       - NACOS_ADDRESS=${NACOS_ADDRESS}
       - SENTINEL_DASHBOARD=${SENTINEL_DASHBOARD}
       - ROCKETMQ_NAMESRV=${ROCKETMQ_NAMESRV}
       - ELASTICSEARCH_URIS=${ELASTICSEARCH_URIS}
-    # 依赖就绪门控：下列 9 个基础设施/中间件在各自 compose 文件里已定义 healthcheck，
-    # 用 service_healthy 等它真正可用（不再靠重启撞运气）；RocketMQ / Seata 镜像
-    # 未定义 healthcheck，只能退一步用 service_started。
+    # 有健康检查的依赖等待 service_healthy；其余依赖等待进程启动。
+    # 分组联调时只拉起本服务声明的依赖。
     depends_on:
       elasticsearch:
         condition: service_healthy
       nacos:
         condition: service_healthy
       rmqnamesrv:
-        condition: service_started
+        condition: service_healthy
+      rmqbroker:
+        condition: service_healthy
     networks: [nabu-net]
 
   nabu-file-service:
@@ -245,6 +261,8 @@ services:
       # Dockerfile 的 ENTRYPOINT 会展开 $JAVA_OPTS：堆按容器上限自适应，
       # OOM 时直接退出交给 restart 策略，而不是拖死整个 Docker VM
       - "JAVA_OPTS=${JAVA_OPTS:--XX:MaxRAMPercentage=60 -XX:+ExitOnOutOfMemoryError}"
+      # 本地允许分组启动；缺失的 RPC 提供者仍会在调用时报告不可用。
+      - DUBBO_CONSUMER_CHECK=${DUBBO_CONSUMER_CHECK:-false}
       - NACOS_ADDRESS=${NACOS_ADDRESS}
       - SENTINEL_DASHBOARD=${SENTINEL_DASHBOARD}
       - MYSQL_FILE_HOST=${MYSQL_FILE_HOST}
@@ -255,9 +273,8 @@ services:
       - RUSTFS_ACCESS_KEY=${RUSTFS_ACCESS_KEY}
       - RUSTFS_SECRET_KEY=${RUSTFS_SECRET_KEY}
       - RUSTFS_BUCKET=${RUSTFS_BUCKET}
-    # 依赖就绪门控：下列 9 个基础设施/中间件在各自 compose 文件里已定义 healthcheck，
-    # 用 service_healthy 等它真正可用（不再靠重启撞运气）；RocketMQ / Seata 镜像
-    # 未定义 healthcheck，只能退一步用 service_started。
+    # 有健康检查的依赖等待 service_healthy；其余依赖等待进程启动。
+    # 分组联调时只拉起本服务声明的依赖。
     depends_on:
       mysql-file:
         condition: service_healthy
@@ -283,6 +300,8 @@ services:
       # Dockerfile 的 ENTRYPOINT 会展开 $JAVA_OPTS：堆按容器上限自适应，
       # OOM 时直接退出交给 restart 策略，而不是拖死整个 Docker VM
       - "JAVA_OPTS=${JAVA_OPTS:--XX:MaxRAMPercentage=60 -XX:+ExitOnOutOfMemoryError}"
+      # 本地允许分组启动；缺失的 RPC 提供者仍会在调用时报告不可用。
+      - DUBBO_CONSUMER_CHECK=${DUBBO_CONSUMER_CHECK:-false}
       - NACOS_ADDRESS=${NACOS_ADDRESS}
       - SENTINEL_DASHBOARD=${SENTINEL_DASHBOARD}
       - ROCKETMQ_NAMESRV=${ROCKETMQ_NAMESRV}
@@ -290,16 +309,17 @@ services:
       - MYSQL_MODERATION_PORT=${MYSQL_MODERATION_PORT}
       - MYSQL_MODERATION_USERNAME=${MYSQL_MODERATION_USERNAME}
       - MYSQL_MODERATION_PASSWORD=${MYSQL_MODERATION_PASSWORD}
-    # 依赖就绪门控：下列 9 个基础设施/中间件在各自 compose 文件里已定义 healthcheck，
-    # 用 service_healthy 等它真正可用（不再靠重启撞运气）；RocketMQ / Seata 镜像
-    # 未定义 healthcheck，只能退一步用 service_started。
+    # 有健康检查的依赖等待 service_healthy；其余依赖等待进程启动。
+    # 分组联调时只拉起本服务声明的依赖。
     depends_on:
       mysql-moderation:
         condition: service_healthy
       nacos:
         condition: service_healthy
       rmqnamesrv:
-        condition: service_started
+        condition: service_healthy
+      rmqbroker:
+        condition: service_healthy
     networks: [nabu-net]
 
   nabu-stat-service:
@@ -318,13 +338,14 @@ services:
       # Dockerfile 的 ENTRYPOINT 会展开 $JAVA_OPTS：堆按容器上限自适应，
       # OOM 时直接退出交给 restart 策略，而不是拖死整个 Docker VM
       - "JAVA_OPTS=${JAVA_OPTS:--XX:MaxRAMPercentage=60 -XX:+ExitOnOutOfMemoryError}"
+      # 本地允许分组启动；缺失的 RPC 提供者仍会在调用时报告不可用。
+      - DUBBO_CONSUMER_CHECK=${DUBBO_CONSUMER_CHECK:-false}
       - NACOS_ADDRESS=${NACOS_ADDRESS}
       - SENTINEL_DASHBOARD=${SENTINEL_DASHBOARD}
       - REDIS_HOST=${REDIS_HOST}
       - REDIS_PORT=${REDIS_PORT}
-    # 依赖就绪门控：下列 9 个基础设施/中间件在各自 compose 文件里已定义 healthcheck，
-    # 用 service_healthy 等它真正可用（不再靠重启撞运气）；RocketMQ / Seata 镜像
-    # 未定义 healthcheck，只能退一步用 service_started。
+    # 有健康检查的依赖等待 service_healthy；其余依赖等待进程启动。
+    # 分组联调时只拉起本服务声明的依赖。
     depends_on:
       redis:
         condition: service_healthy
@@ -348,11 +369,12 @@ services:
       # Dockerfile 的 ENTRYPOINT 会展开 $JAVA_OPTS：堆按容器上限自适应，
       # OOM 时直接退出交给 restart 策略，而不是拖死整个 Docker VM
       - "JAVA_OPTS=${JAVA_OPTS:--XX:MaxRAMPercentage=60 -XX:+ExitOnOutOfMemoryError}"
+      # 本地允许分组启动；缺失的 RPC 提供者仍会在调用时报告不可用。
+      - DUBBO_CONSUMER_CHECK=${DUBBO_CONSUMER_CHECK:-false}
       - NACOS_ADDRESS=${NACOS_ADDRESS}
       - SENTINEL_DASHBOARD=${SENTINEL_DASHBOARD}
-    # 依赖就绪门控：下列 9 个基础设施/中间件在各自 compose 文件里已定义 healthcheck，
-    # 用 service_healthy 等它真正可用（不再靠重启撞运气）；RocketMQ / Seata 镜像
-    # 未定义 healthcheck，只能退一步用 service_started。
+    # 有健康检查的依赖等待 service_healthy；其余依赖等待进程启动。
+    # 分组联调时只拉起本服务声明的依赖。
     depends_on:
       nacos:
         condition: service_healthy
@@ -374,11 +396,12 @@ services:
       # Dockerfile 的 ENTRYPOINT 会展开 $JAVA_OPTS：堆按容器上限自适应，
       # OOM 时直接退出交给 restart 策略，而不是拖死整个 Docker VM
       - "JAVA_OPTS=${JAVA_OPTS:--XX:MaxRAMPercentage=60 -XX:+ExitOnOutOfMemoryError}"
+      # 本地允许分组启动；缺失的 RPC 提供者仍会在调用时报告不可用。
+      - DUBBO_CONSUMER_CHECK=${DUBBO_CONSUMER_CHECK:-false}
       - NACOS_ADDRESS=${NACOS_ADDRESS}
       - SENTINEL_DASHBOARD=${SENTINEL_DASHBOARD}
-    # 依赖就绪门控：下列 9 个基础设施/中间件在各自 compose 文件里已定义 healthcheck，
-    # 用 service_healthy 等它真正可用（不再靠重启撞运气）；RocketMQ / Seata 镜像
-    # 未定义 healthcheck，只能退一步用 service_started。
+    # 有健康检查的依赖等待 service_healthy；其余依赖等待进程启动。
+    # 分组联调时只拉起本服务声明的依赖。
     depends_on:
       nacos:
         condition: service_healthy
@@ -400,11 +423,12 @@ services:
       # Dockerfile 的 ENTRYPOINT 会展开 $JAVA_OPTS：堆按容器上限自适应，
       # OOM 时直接退出交给 restart 策略，而不是拖死整个 Docker VM
       - "JAVA_OPTS=${JAVA_OPTS:--XX:MaxRAMPercentage=60 -XX:+ExitOnOutOfMemoryError}"
+      # 本地允许分组启动；缺失的 RPC 提供者仍会在调用时报告不可用。
+      - DUBBO_CONSUMER_CHECK=${DUBBO_CONSUMER_CHECK:-false}
       - NACOS_ADDRESS=${NACOS_ADDRESS}
       - SENTINEL_DASHBOARD=${SENTINEL_DASHBOARD}
-    # 依赖就绪门控：下列 9 个基础设施/中间件在各自 compose 文件里已定义 healthcheck，
-    # 用 service_healthy 等它真正可用（不再靠重启撞运气）；RocketMQ / Seata 镜像
-    # 未定义 healthcheck，只能退一步用 service_started。
+    # 有健康检查的依赖等待 service_healthy；其余依赖等待进程启动。
+    # 分组联调时只拉起本服务声明的依赖。
     depends_on:
       nacos:
         condition: service_healthy

@@ -5,6 +5,7 @@
 #   ./deploy/scripts/up.sh infra        # 只拉起基础设施（MySQL/Redis/ES/RustFS）
 #   ./deploy/scripts/up.sh middleware   # 拉起基础设施+中间件（Nacos/Sentinel/RocketMQ/Seata/Canal/Higress）
 #   ./deploy/scripts/up.sh obs          # 拉起基础设施+中间件+可观测性（不含应用，适合本地跑 Java 服务调试）
+#   ./deploy/scripts/up.sh all nabu-user-service nabu-web  # 只起指定服务及其依赖，适合小内存机器
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
@@ -28,4 +29,5 @@ case "${1:-all}" in
     ;;
 esac
 
-docker compose --env-file .env "${FILES[@]}" up -d
+if (($#)); then shift; fi
+docker compose --env-file .env "${FILES[@]}" up -d "$@"

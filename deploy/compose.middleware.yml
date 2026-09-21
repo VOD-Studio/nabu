@@ -14,6 +14,9 @@ services:
     restart: unless-stopped
     environment:
       - MODE=standalone
+      - JVM_XMS=256m
+      - JVM_XMX=512m
+      - JVM_XMN=128m
       - NACOS_AUTH_ENABLE=false
       # Nacos 3 的启动脚本始终要求这三项；默认值仅用于本地，生产必须覆盖并开启鉴权。
       - NACOS_AUTH_TOKEN=${NACOS_AUTH_TOKEN:-bmFidS1sb2NhbC1kZXYtb25seS1uYWNvcy1zaWduaW5nLWtleQ==}
@@ -58,7 +61,14 @@ services:
     restart: unless-stopped
     ports:
       - "9876:9876"
+    environment:
+      - HEAP_OPTS=-Xms128m -Xmx256m -Xmn64m
     command: sh mqnamesrv
+    healthcheck:
+      test: ["CMD", "bash", "-c", ": > /dev/tcp/127.0.0.1/9876"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
     networks: [nabu-net]
 
   rmqbroker:
@@ -66,7 +76,8 @@ services:
     container_name: nabu-rmqbroker
     restart: unless-stopped
     depends_on:
-      - rmqnamesrv
+      rmqnamesrv:
+        condition: service_healthy
     ports:
       - "10909:10909"
       - "10911:10911"
@@ -80,6 +91,13 @@ services:
       - ./data/rocketmq/broker/logs:/home/rocketmq/logs
       - ./data/rocketmq/broker/store:/home/rocketmq/store
     command: sh mqbroker -c /opt/rocketmq/conf/broker.conf
+    healthcheck:
+      # Proxy 需要已注册到 NameServer 的 Broker，仅端口监听还不足以创建系统主题。
+      test: ["CMD-SHELL", "JAVA_OPT_EXT='-Xms32m -Xmx64m -Xmn16m' sh mqadmin clusterList -n rmqnamesrv:9876 | grep -qE '^DefaultCluster[[:space:]]+broker-a[[:space:]].*[[:space:]]true[[:space:]]*$'"]
+      interval: 20s
+      timeout: 10s
+      retries: 12
+      start_period: 20s
     networks: [nabu-net]
 
   rmqproxy:
@@ -87,18 +105,21 @@ services:
     container_name: nabu-rmqproxy
     restart: unless-stopped
     depends_on:
-      - rmqbroker
-      - rmqnamesrv
+      rmqbroker:
+        condition: service_healthy
+      rmqnamesrv:
+        condition: service_healthy
     ports:
       - "8081:8081"
       - "8082:8080"
     environment:
       - NAMESRV_ADDR=rmqnamesrv:9876
+      - JAVA_OPT_EXT=-Xms128m -Xmx256m -Xmn64m
     command: sh mqproxy
     networks: [nabu-net]
 
   rmqdashboard:
-    image: apacherocketmq/rocketmq-dashboard:latest
+    image: apacherocketmq/rocketmq-dashboard@sha256:ce78506bd6fe01095bf1b37c954625e363ba5afae5d1539b77f395785d445e33
     container_name: nabu-rmqdashboard
     restart: unless-stopped
     depends_on:
@@ -106,7 +127,7 @@ services:
     ports:
       - "9878:8080"
     environment:
-      - JAVA_OPTS=-Drocketmq.namesrv.addr=rmqnamesrv:9876
+      - JAVA_OPTS=-Xms64m -Xmx256m -Dserver.port=8080 -Drocketmq.namesrv.addr=rmqnamesrv:9876
     networks: [nabu-net]
 
   # ---------------------------------------------------------------------------------
@@ -118,7 +139,8 @@ services:
     container_name: nabu-seata-server
     restart: unless-stopped
     depends_on:
-      - nacos
+      nacos:
+        condition: service_healthy
     ports:
       - "8091:8091"
       - "7091:7091"
@@ -126,16 +148,24 @@ services:
       - SEATA_PORT=8091
       - STORE_MODE=file
       - SEATA_IP=seata-server
-      - registry.type=nacos
-      - registry.nacos.serverAddr=nacos:8848
-      - registry.nacos.namespace=
-      - registry.nacos.group=SEATA_GROUP
-      - config.type=nacos
-      - config.nacos.serverAddr=nacos:8848
-      - config.nacos.namespace=
-      - config.nacos.group=SEATA_GROUP
+      - JVM_XMS=128m
+      - JVM_XMX=512m
+      - JVM_MaxDirectMemorySize=128m
+      - SEATA_REGISTRY_TYPE=nacos
+      - SEATA_REGISTRY_NACOS_SERVER_ADDR=nacos:8848
+      - SEATA_REGISTRY_NACOS_GROUP=SEATA_GROUP
+      - SEATA_REGISTRY_NACOS_APPLICATION=seata-server
+      - SEATA_REGISTRY_NACOS_CLUSTER=default
+      # 本地事务参数使用文件配置，不依赖尚未导入 Nacos 的配置项。
+      - SEATA_CONFIG_TYPE=file
     volumes:
       - ./data/seata:/root/seata-server/data
+    healthcheck:
+      test: ["CMD", "bash", "-c", ": > /dev/tcp/127.0.0.1/8091"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
     networks: [nabu-net]
 
   # ---------------------------------------------------------------------------------
