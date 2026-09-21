@@ -26,15 +26,24 @@ COPY nabu-task-service/pom.xml nabu-task-service/pom.xml
 COPY nabu-admin-service/pom.xml nabu-admin-service/pom.xml
 COPY nabu-web/pom.xml nabu-web/pom.xml
 
-# 先只拷贝各模块 pom.xml 下载依赖，最大化利用 Docker layer 缓存；
-# 源码变更时不会重新下载全部依赖。
-RUN mvn -q -B dependency:go-offline || true
+# 先只拷贝各模块 pom.xml 预下载依赖，最大化利用 Docker layer 缓存；
+# 源码变更时不会重新解析依赖。用 BuildKit cache mount 挂 /root/.m2，依赖落在构建缓存里
+# 而不是镜像层里：即使 COPY . . 之后的层失效重跑，缓存依然命中，不会从头再下一遍。
+# 注意 cache mount 自 Dockerfile frontend 1.2 起内建（Docker 29 默认可用，无需 # syntax 指令），
+# 且内容不进最终镜像，docker builder prune 会清掉它，属正常现象。
+# 依赖预下载失败不再致命：旧写法的 `|| true` 会把错误完全吞掉，这里改成显式告警——
+# 多模块 reactor 下 go-offline 偶发解析不全属已知现象，后续 package 会补下缺失坐标。
+RUN --mount=type=cache,target=/root/.m2 \
+    mvn -B dependency:go-offline -DskipTests \
+    || echo "[warn] dependency:go-offline 未完全成功，继续构建：package 阶段会补下缺失坐标（复用同一份 /root/.m2 缓存）"
 
 COPY . .
 
 ARG MODULE
 RUN test -n "$MODULE" || (echo "必须通过 --build-arg MODULE=<模块名> 指定要构建的服务" && exit 1)
-RUN mvn -q -B -pl ${MODULE} -am package -DskipTests
+# 与上面共用同一份 /root/.m2 缓存：12 个镜像只有第一次构建需要下载依赖。
+RUN --mount=type=cache,target=/root/.m2 \
+    mvn -B -pl ${MODULE} -am package -DskipTests
 
 FROM eclipse-temurin:21-jre-alpine AS runtime
 ARG MODULE

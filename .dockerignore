@@ -1,0 +1,31 @@
+# =====================================================================================
+# Docker 构建上下文排除清单。
+# 不加这份文件时，`docker build`（compose 里 context 是仓库根目录）会把 1.1G 的本地
+# target/ 产物整个上传进构建上下文，每次构建都白传一遍；而镜像里的 jar 是由构建阶段
+# 内 `mvn package` 重新编译出来的（COPY --from=build 取的是构建阶段的文件），
+# 所以排除宿主机 target/ 完全不影响镜像内容。
+# =====================================================================================
+
+# Maven 构建产物（上下文体积的主要来源，1.1G）
+**/target/
+*.jar.original
+
+# 版本库与 IDE 元数据
+.git/
+.gitignore
+.idea/
+*.iml
+.vscode/
+.project
+.classpath
+.factorypath
+.settings/
+
+# 运行时数据 / 日志（compose 走宿主机 bind mount 与 named volume，不需要进上下文）
+deploy/data/
+deploy/**/logs/
+**/*.log
+
+# 文档与系统杂项
+docs/
+.DS_Store

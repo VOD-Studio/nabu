@@ -76,7 +76,23 @@ nabu/
 | nabu-task-service | 18090 | 28090 |
 | nabu-admin-service | 18091 | 28091 |
 
+## 编译
+
+```bash
+mvn -B -DskipTests package          # 全量：14 个 jar（12 个可执行 fat jar + 2 个库 jar）
+mvn -B -pl nabu-user-service -am package -DskipTests   # 只构建某个服务及其依赖模块
+```
+
+产物在各模块自己的 `target/` 下，例如 `nabu-web/target/nabu-web-0.1.0-SNAPSHOT.jar`。
+`nabu-common` / `nabu-api` 是普通库 jar，不能 `java -jar`。
+同目录下的 `*.jar.original` 是 repackage 之前的瘦 jar，不要拿去运行。
+
 ## 本地启动
+
+> **顺序要求**：必须先起 Nacos（注册中心 + 配置中心），再起各 Java 服务。
+> 各服务的 `application.yml` 里有 `spring.config.import: optional:nacos:<服务名>.yaml`，
+> 该 Nacos dataId 不存在也不影响启动（`optional:` 前缀），但 Nacos 本身连不上会让服务
+> 卡在启动阶段反复重连。
 
 ### 1. 只起依赖，裸机跑 Java 服务（推荐日常开发调试）
 
@@ -88,14 +104,48 @@ cd deploy
 各服务 `application.yml` 里的默认值就是 `127.0.0.1:<容器映射端口>`，裸机跑
 `mvn -pl nabu-user-service spring-boot:run` 之类命令即可直接连上。
 
-### 2. 全量 Docker Compose（包含全部 13 个 Java 服务镜像构建 + 启动）
+只想先验证链路，可以单独起 Nacos（standalone 内嵌 derby，无需外部数据库）：
+
+```bash
+cd deploy
+docker compose --env-file .env -f compose.yml -f compose.middleware.yml up -d nacos
+```
+
+**宿主机端口避让**：本机 6379 / 8443 已被其他项目容器占用，因此做了两处偏移——
+
+| 组件 | 原始映射 | 现映射 | 影响 |
+|---|---|---|---|
+| nabu-redis | `6379:6379` | `6380:6379` | 裸机默认端口同步改为 6380；容器网络内仍是 `redis:6379`（见 `.env`） |
+| nabu-higress | `8443:8443` | `18443:8443` | 容器内监听端口不变，只是宿主访问 HTTPS 走 18443 |
+
+如果换台机器这两个端口是空的，把映射改回 `6379:6379` / `8443:8443`，
+同时把各 `application.yml` 里的 `${REDIS_PORT:6380}` 默认值改回 `6379` 即可。
+
+### 2. 全量 Docker Compose（包含全部 12 个 Java 服务镜像构建 + 启动）
 
 ```bash
 cd deploy
 ./scripts/up.sh all
 ```
 
-首次构建会比较慢（Maven 多模块 + 13 个镜像）。查看某个服务日志：
+首次构建需要下载基础镜像与 Maven 依赖，比较慢；12 个镜像共用同一份 Dockerfile 与
+`/root/.m2` 构建缓存（BuildKit cache mount，见根目录 `Dockerfile` 与 `.dockerignore`），
+只有第一个镜像需要真正下载依赖。
+
+**容器化运行的三点注意**
+
+1. **内存**：`compose.app.yml` 给每个应用容器设了 `mem_limit: ${APP_MEM_LIMIT:-1g}` 和
+   `JAVA_OPTS=${JAVA_OPTS:--XX:MaxRAMPercentage=60 -XX:+ExitOnOutOfMemoryError}`。
+   12 个全起 + 基础设施 + 中间件 + 可观测性栈仍然需要 8G 以上，Docker Desktop 内存不足时
+   按需起子集：`docker compose ... up -d nabu-user-service nabu-web`。
+2. **就绪门控**：`depends_on` 已带 `condition` —— MySQL/Redis/ES/RustFS/Nacos 有 healthcheck，
+   用 `service_healthy` 等真正可用；RocketMQ/Seata 镜像没有 healthcheck，只能 `service_started`，
+   首次联调若遇到连接报错，等 broker 起来后重启对应服务即可。
+3. **不要裸机与容器混跑**：`compose.app.yml` 只映射 HTTP `1808x`，没有映射 Dubbo Triple 的
+   `2808x`，容器内 provider 注册到 Nacos 的是 `172.x` 内网地址，宿主机进程访问不到。
+   要混跑就补映射并用 `DUBBO_IP_TO_REGISTRY` 指定注册地址，否则统一选一种方式。
+
+查看某个服务日志：
 
 ```bash
 ./scripts/logs.sh nabu-user-service

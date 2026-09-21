@@ -6,6 +6,15 @@
 #   改为 compose 内部服务名，实现容器网络互通，具体环境变量含义见 deploy/.env 注释。
 # - 生产不会这样直接把全部服务塞进一个 compose，这里是为了本地一键拉起全链路便于联调。
 # =====================================================================================
+# ---------------------------------------------------------------------------------
+# 内存预算提醒：本机 Docker VM 约 5.8 GiB。12 个应用容器默认各限 1g（堆按 60% 自适应，
+# 常驻 RSS 通常 400~600M），再叠加 ES(512M 堆) + 5×MySQL + RocketMQ 三件套 + Seata +
+# Canal + Higress + 可观测性栈，`up.sh all` 一次性全起仍会超卖。日常联调按需起：
+#   docker compose ... up -d nabu-user-service nabu-web
+# 两个可调旋钮（写在 deploy/.env，或用环境变量临时覆盖）：
+#   APP_MEM_LIMIT  单容器内存上限，默认 1g
+#   JAVA_OPTS      JVM 参数，默认 -XX:MaxRAMPercentage=60 -XX:+ExitOnOutOfMemoryError
+# ---------------------------------------------------------------------------------
 name: nabu
 
 services:
@@ -18,9 +27,14 @@ services:
         MODULE: nabu-user-service
     container_name: nabu-user-service
     restart: unless-stopped
+    # 单容器内存上限，可用 deploy/.env 的 APP_MEM_LIMIT 统一调（默认 1g）
+    mem_limit: "${APP_MEM_LIMIT:-1g}"
     ports:
       - "18081:18081"
     environment:
+      # Dockerfile 的 ENTRYPOINT 会展开 $JAVA_OPTS：堆按容器上限自适应，
+      # OOM 时直接退出交给 restart 策略，而不是拖死整个 Docker VM
+      - "JAVA_OPTS=${JAVA_OPTS:--XX:MaxRAMPercentage=60 -XX:+ExitOnOutOfMemoryError}"
       - NACOS_ADDRESS=${NACOS_ADDRESS}
       - SENTINEL_DASHBOARD=${SENTINEL_DASHBOARD}
       - SEATA_ADDRESS=${SEATA_ADDRESS}
@@ -31,10 +45,16 @@ services:
       - MYSQL_USER_PORT=${MYSQL_USER_PORT}
       - MYSQL_USER_USERNAME=${MYSQL_USER_USERNAME}
       - MYSQL_USER_PASSWORD=${MYSQL_USER_PASSWORD}
+    # 依赖就绪门控：下列 9 个基础设施/中间件在各自 compose 文件里已定义 healthcheck，
+    # 用 service_healthy 等它真正可用（不再靠重启撞运气）；RocketMQ / Seata 镜像
+    # 未定义 healthcheck，只能退一步用 service_started。
     depends_on:
-      - mysql-user
-      - redis
-      - nacos
+      mysql-user:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      nacos:
+        condition: service_healthy
     networks: [nabu-net]
 
   nabu-auth-service:
@@ -45,16 +65,26 @@ services:
         MODULE: nabu-auth-service
     container_name: nabu-auth-service
     restart: unless-stopped
+    # 单容器内存上限，可用 deploy/.env 的 APP_MEM_LIMIT 统一调（默认 1g）
+    mem_limit: "${APP_MEM_LIMIT:-1g}"
     ports:
       - "18082:18082"
     environment:
+      # Dockerfile 的 ENTRYPOINT 会展开 $JAVA_OPTS：堆按容器上限自适应，
+      # OOM 时直接退出交给 restart 策略，而不是拖死整个 Docker VM
+      - "JAVA_OPTS=${JAVA_OPTS:--XX:MaxRAMPercentage=60 -XX:+ExitOnOutOfMemoryError}"
       - NACOS_ADDRESS=${NACOS_ADDRESS}
       - SENTINEL_DASHBOARD=${SENTINEL_DASHBOARD}
       - REDIS_HOST=${REDIS_HOST}
       - REDIS_PORT=${REDIS_PORT}
+    # 依赖就绪门控：下列 9 个基础设施/中间件在各自 compose 文件里已定义 healthcheck，
+    # 用 service_healthy 等它真正可用（不再靠重启撞运气）；RocketMQ / Seata 镜像
+    # 未定义 healthcheck，只能退一步用 service_started。
     depends_on:
-      - redis
-      - nacos
+      redis:
+        condition: service_healthy
+      nacos:
+        condition: service_healthy
     networks: [nabu-net]
 
   nabu-forum-service:
@@ -65,9 +95,14 @@ services:
         MODULE: nabu-forum-service
     container_name: nabu-forum-service
     restart: unless-stopped
+    # 单容器内存上限，可用 deploy/.env 的 APP_MEM_LIMIT 统一调（默认 1g）
+    mem_limit: "${APP_MEM_LIMIT:-1g}"
     ports:
       - "18083:18083"
     environment:
+      # Dockerfile 的 ENTRYPOINT 会展开 $JAVA_OPTS：堆按容器上限自适应，
+      # OOM 时直接退出交给 restart 策略，而不是拖死整个 Docker VM
+      - "JAVA_OPTS=${JAVA_OPTS:--XX:MaxRAMPercentage=60 -XX:+ExitOnOutOfMemoryError}"
       - NACOS_ADDRESS=${NACOS_ADDRESS}
       - SENTINEL_DASHBOARD=${SENTINEL_DASHBOARD}
       - SEATA_ADDRESS=${SEATA_ADDRESS}
@@ -78,12 +113,20 @@ services:
       - MYSQL_FORUM_PORT=${MYSQL_FORUM_PORT}
       - MYSQL_FORUM_USERNAME=${MYSQL_FORUM_USERNAME}
       - MYSQL_FORUM_PASSWORD=${MYSQL_FORUM_PASSWORD}
+    # 依赖就绪门控：下列 9 个基础设施/中间件在各自 compose 文件里已定义 healthcheck，
+    # 用 service_healthy 等它真正可用（不再靠重启撞运气）；RocketMQ / Seata 镜像
+    # 未定义 healthcheck，只能退一步用 service_started。
     depends_on:
-      - mysql-forum
-      - redis
-      - nacos
-      - rmqnamesrv
-      - seata-server
+      mysql-forum:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      nacos:
+        condition: service_healthy
+      rmqnamesrv:
+        condition: service_started
+      seata-server:
+        condition: service_started
     networks: [nabu-net]
 
   nabu-social-service:
@@ -94,18 +137,29 @@ services:
         MODULE: nabu-social-service
     container_name: nabu-social-service
     restart: unless-stopped
+    # 单容器内存上限，可用 deploy/.env 的 APP_MEM_LIMIT 统一调（默认 1g）
+    mem_limit: "${APP_MEM_LIMIT:-1g}"
     ports:
       - "18084:18084"
     environment:
+      # Dockerfile 的 ENTRYPOINT 会展开 $JAVA_OPTS：堆按容器上限自适应，
+      # OOM 时直接退出交给 restart 策略，而不是拖死整个 Docker VM
+      - "JAVA_OPTS=${JAVA_OPTS:--XX:MaxRAMPercentage=60 -XX:+ExitOnOutOfMemoryError}"
       - NACOS_ADDRESS=${NACOS_ADDRESS}
       - SENTINEL_DASHBOARD=${SENTINEL_DASHBOARD}
       - ROCKETMQ_NAMESRV=${ROCKETMQ_NAMESRV}
       - REDIS_HOST=${REDIS_HOST}
       - REDIS_PORT=${REDIS_PORT}
+    # 依赖就绪门控：下列 9 个基础设施/中间件在各自 compose 文件里已定义 healthcheck，
+    # 用 service_healthy 等它真正可用（不再靠重启撞运气）；RocketMQ / Seata 镜像
+    # 未定义 healthcheck，只能退一步用 service_started。
     depends_on:
-      - redis
-      - nacos
-      - rmqnamesrv
+      redis:
+        condition: service_healthy
+      nacos:
+        condition: service_healthy
+      rmqnamesrv:
+        condition: service_started
     networks: [nabu-net]
 
   nabu-notify-service:
@@ -116,9 +170,14 @@ services:
         MODULE: nabu-notify-service
     container_name: nabu-notify-service
     restart: unless-stopped
+    # 单容器内存上限，可用 deploy/.env 的 APP_MEM_LIMIT 统一调（默认 1g）
+    mem_limit: "${APP_MEM_LIMIT:-1g}"
     ports:
       - "18085:18085"
     environment:
+      # Dockerfile 的 ENTRYPOINT 会展开 $JAVA_OPTS：堆按容器上限自适应，
+      # OOM 时直接退出交给 restart 策略，而不是拖死整个 Docker VM
+      - "JAVA_OPTS=${JAVA_OPTS:--XX:MaxRAMPercentage=60 -XX:+ExitOnOutOfMemoryError}"
       - NACOS_ADDRESS=${NACOS_ADDRESS}
       - SENTINEL_DASHBOARD=${SENTINEL_DASHBOARD}
       - ROCKETMQ_NAMESRV=${ROCKETMQ_NAMESRV}
@@ -126,10 +185,16 @@ services:
       - MYSQL_NOTIFY_PORT=${MYSQL_NOTIFY_PORT}
       - MYSQL_NOTIFY_USERNAME=${MYSQL_NOTIFY_USERNAME}
       - MYSQL_NOTIFY_PASSWORD=${MYSQL_NOTIFY_PASSWORD}
+    # 依赖就绪门控：下列 9 个基础设施/中间件在各自 compose 文件里已定义 healthcheck，
+    # 用 service_healthy 等它真正可用（不再靠重启撞运气）；RocketMQ / Seata 镜像
+    # 未定义 healthcheck，只能退一步用 service_started。
     depends_on:
-      - mysql-notify
-      - nacos
-      - rmqnamesrv
+      mysql-notify:
+        condition: service_healthy
+      nacos:
+        condition: service_healthy
+      rmqnamesrv:
+        condition: service_started
     networks: [nabu-net]
 
   nabu-search-service:
@@ -140,17 +205,28 @@ services:
         MODULE: nabu-search-service
     container_name: nabu-search-service
     restart: unless-stopped
+    # 单容器内存上限，可用 deploy/.env 的 APP_MEM_LIMIT 统一调（默认 1g）
+    mem_limit: "${APP_MEM_LIMIT:-1g}"
     ports:
       - "18086:18086"
     environment:
+      # Dockerfile 的 ENTRYPOINT 会展开 $JAVA_OPTS：堆按容器上限自适应，
+      # OOM 时直接退出交给 restart 策略，而不是拖死整个 Docker VM
+      - "JAVA_OPTS=${JAVA_OPTS:--XX:MaxRAMPercentage=60 -XX:+ExitOnOutOfMemoryError}"
       - NACOS_ADDRESS=${NACOS_ADDRESS}
       - SENTINEL_DASHBOARD=${SENTINEL_DASHBOARD}
       - ROCKETMQ_NAMESRV=${ROCKETMQ_NAMESRV}
       - ELASTICSEARCH_URIS=${ELASTICSEARCH_URIS}
+    # 依赖就绪门控：下列 9 个基础设施/中间件在各自 compose 文件里已定义 healthcheck，
+    # 用 service_healthy 等它真正可用（不再靠重启撞运气）；RocketMQ / Seata 镜像
+    # 未定义 healthcheck，只能退一步用 service_started。
     depends_on:
-      - elasticsearch
-      - nacos
-      - rmqnamesrv
+      elasticsearch:
+        condition: service_healthy
+      nacos:
+        condition: service_healthy
+      rmqnamesrv:
+        condition: service_started
     networks: [nabu-net]
 
   nabu-file-service:
@@ -161,9 +237,14 @@ services:
         MODULE: nabu-file-service
     container_name: nabu-file-service
     restart: unless-stopped
+    # 单容器内存上限，可用 deploy/.env 的 APP_MEM_LIMIT 统一调（默认 1g）
+    mem_limit: "${APP_MEM_LIMIT:-1g}"
     ports:
       - "18087:18087"
     environment:
+      # Dockerfile 的 ENTRYPOINT 会展开 $JAVA_OPTS：堆按容器上限自适应，
+      # OOM 时直接退出交给 restart 策略，而不是拖死整个 Docker VM
+      - "JAVA_OPTS=${JAVA_OPTS:--XX:MaxRAMPercentage=60 -XX:+ExitOnOutOfMemoryError}"
       - NACOS_ADDRESS=${NACOS_ADDRESS}
       - SENTINEL_DASHBOARD=${SENTINEL_DASHBOARD}
       - MYSQL_FILE_HOST=${MYSQL_FILE_HOST}
@@ -174,10 +255,16 @@ services:
       - RUSTFS_ACCESS_KEY=${RUSTFS_ACCESS_KEY}
       - RUSTFS_SECRET_KEY=${RUSTFS_SECRET_KEY}
       - RUSTFS_BUCKET=${RUSTFS_BUCKET}
+    # 依赖就绪门控：下列 9 个基础设施/中间件在各自 compose 文件里已定义 healthcheck，
+    # 用 service_healthy 等它真正可用（不再靠重启撞运气）；RocketMQ / Seata 镜像
+    # 未定义 healthcheck，只能退一步用 service_started。
     depends_on:
-      - mysql-file
-      - rustfs
-      - nacos
+      mysql-file:
+        condition: service_healthy
+      rustfs:
+        condition: service_healthy
+      nacos:
+        condition: service_healthy
     networks: [nabu-net]
 
   nabu-moderation-service:
@@ -188,9 +275,14 @@ services:
         MODULE: nabu-moderation-service
     container_name: nabu-moderation-service
     restart: unless-stopped
+    # 单容器内存上限，可用 deploy/.env 的 APP_MEM_LIMIT 统一调（默认 1g）
+    mem_limit: "${APP_MEM_LIMIT:-1g}"
     ports:
       - "18088:18088"
     environment:
+      # Dockerfile 的 ENTRYPOINT 会展开 $JAVA_OPTS：堆按容器上限自适应，
+      # OOM 时直接退出交给 restart 策略，而不是拖死整个 Docker VM
+      - "JAVA_OPTS=${JAVA_OPTS:--XX:MaxRAMPercentage=60 -XX:+ExitOnOutOfMemoryError}"
       - NACOS_ADDRESS=${NACOS_ADDRESS}
       - SENTINEL_DASHBOARD=${SENTINEL_DASHBOARD}
       - ROCKETMQ_NAMESRV=${ROCKETMQ_NAMESRV}
@@ -198,10 +290,16 @@ services:
       - MYSQL_MODERATION_PORT=${MYSQL_MODERATION_PORT}
       - MYSQL_MODERATION_USERNAME=${MYSQL_MODERATION_USERNAME}
       - MYSQL_MODERATION_PASSWORD=${MYSQL_MODERATION_PASSWORD}
+    # 依赖就绪门控：下列 9 个基础设施/中间件在各自 compose 文件里已定义 healthcheck，
+    # 用 service_healthy 等它真正可用（不再靠重启撞运气）；RocketMQ / Seata 镜像
+    # 未定义 healthcheck，只能退一步用 service_started。
     depends_on:
-      - mysql-moderation
-      - nacos
-      - rmqnamesrv
+      mysql-moderation:
+        condition: service_healthy
+      nacos:
+        condition: service_healthy
+      rmqnamesrv:
+        condition: service_started
     networks: [nabu-net]
 
   nabu-stat-service:
@@ -212,16 +310,26 @@ services:
         MODULE: nabu-stat-service
     container_name: nabu-stat-service
     restart: unless-stopped
+    # 单容器内存上限，可用 deploy/.env 的 APP_MEM_LIMIT 统一调（默认 1g）
+    mem_limit: "${APP_MEM_LIMIT:-1g}"
     ports:
       - "18089:18089"
     environment:
+      # Dockerfile 的 ENTRYPOINT 会展开 $JAVA_OPTS：堆按容器上限自适应，
+      # OOM 时直接退出交给 restart 策略，而不是拖死整个 Docker VM
+      - "JAVA_OPTS=${JAVA_OPTS:--XX:MaxRAMPercentage=60 -XX:+ExitOnOutOfMemoryError}"
       - NACOS_ADDRESS=${NACOS_ADDRESS}
       - SENTINEL_DASHBOARD=${SENTINEL_DASHBOARD}
       - REDIS_HOST=${REDIS_HOST}
       - REDIS_PORT=${REDIS_PORT}
+    # 依赖就绪门控：下列 9 个基础设施/中间件在各自 compose 文件里已定义 healthcheck，
+    # 用 service_healthy 等它真正可用（不再靠重启撞运气）；RocketMQ / Seata 镜像
+    # 未定义 healthcheck，只能退一步用 service_started。
     depends_on:
-      - redis
-      - nacos
+      redis:
+        condition: service_healthy
+      nacos:
+        condition: service_healthy
     networks: [nabu-net]
 
   nabu-task-service:
@@ -232,13 +340,22 @@ services:
         MODULE: nabu-task-service
     container_name: nabu-task-service
     restart: unless-stopped
+    # 单容器内存上限，可用 deploy/.env 的 APP_MEM_LIMIT 统一调（默认 1g）
+    mem_limit: "${APP_MEM_LIMIT:-1g}"
     ports:
       - "18090:18090"
     environment:
+      # Dockerfile 的 ENTRYPOINT 会展开 $JAVA_OPTS：堆按容器上限自适应，
+      # OOM 时直接退出交给 restart 策略，而不是拖死整个 Docker VM
+      - "JAVA_OPTS=${JAVA_OPTS:--XX:MaxRAMPercentage=60 -XX:+ExitOnOutOfMemoryError}"
       - NACOS_ADDRESS=${NACOS_ADDRESS}
       - SENTINEL_DASHBOARD=${SENTINEL_DASHBOARD}
+    # 依赖就绪门控：下列 9 个基础设施/中间件在各自 compose 文件里已定义 healthcheck，
+    # 用 service_healthy 等它真正可用（不再靠重启撞运气）；RocketMQ / Seata 镜像
+    # 未定义 healthcheck，只能退一步用 service_started。
     depends_on:
-      - nacos
+      nacos:
+        condition: service_healthy
     networks: [nabu-net]
 
   nabu-admin-service:
@@ -249,13 +366,22 @@ services:
         MODULE: nabu-admin-service
     container_name: nabu-admin-service
     restart: unless-stopped
+    # 单容器内存上限，可用 deploy/.env 的 APP_MEM_LIMIT 统一调（默认 1g）
+    mem_limit: "${APP_MEM_LIMIT:-1g}"
     ports:
       - "18091:18091"
     environment:
+      # Dockerfile 的 ENTRYPOINT 会展开 $JAVA_OPTS：堆按容器上限自适应，
+      # OOM 时直接退出交给 restart 策略，而不是拖死整个 Docker VM
+      - "JAVA_OPTS=${JAVA_OPTS:--XX:MaxRAMPercentage=60 -XX:+ExitOnOutOfMemoryError}"
       - NACOS_ADDRESS=${NACOS_ADDRESS}
       - SENTINEL_DASHBOARD=${SENTINEL_DASHBOARD}
+    # 依赖就绪门控：下列 9 个基础设施/中间件在各自 compose 文件里已定义 healthcheck，
+    # 用 service_healthy 等它真正可用（不再靠重启撞运气）；RocketMQ / Seata 镜像
+    # 未定义 healthcheck，只能退一步用 service_started。
     depends_on:
-      - nacos
+      nacos:
+        condition: service_healthy
     networks: [nabu-net]
 
   nabu-web:
@@ -266,13 +392,22 @@ services:
         MODULE: nabu-web
     container_name: nabu-web
     restart: unless-stopped
+    # 单容器内存上限，可用 deploy/.env 的 APP_MEM_LIMIT 统一调（默认 1g）
+    mem_limit: "${APP_MEM_LIMIT:-1g}"
     ports:
       - "18080:18080"
     environment:
+      # Dockerfile 的 ENTRYPOINT 会展开 $JAVA_OPTS：堆按容器上限自适应，
+      # OOM 时直接退出交给 restart 策略，而不是拖死整个 Docker VM
+      - "JAVA_OPTS=${JAVA_OPTS:--XX:MaxRAMPercentage=60 -XX:+ExitOnOutOfMemoryError}"
       - NACOS_ADDRESS=${NACOS_ADDRESS}
       - SENTINEL_DASHBOARD=${SENTINEL_DASHBOARD}
+    # 依赖就绪门控：下列 9 个基础设施/中间件在各自 compose 文件里已定义 healthcheck，
+    # 用 service_healthy 等它真正可用（不再靠重启撞运气）；RocketMQ / Seata 镜像
+    # 未定义 healthcheck，只能退一步用 service_started。
     depends_on:
-      - nacos
+      nacos:
+        condition: service_healthy
     networks: [nabu-net]
 
 networks:
