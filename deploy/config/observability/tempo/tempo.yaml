@@ -6,14 +6,9 @@ distributor:
     otlp:
       protocols:
         grpc:
+          endpoint: 0.0.0.0:4317
         http:
-
-ingester:
-  max_block_duration: 5m
-
-compactor:
-  compaction:
-    compaction_window: 1h
+          endpoint: 0.0.0.0:4318
 
 storage:
   trace:

@@ -15,16 +15,21 @@ services:
     environment:
       - MODE=standalone
       - NACOS_AUTH_ENABLE=false
+      # Nacos 3 的启动脚本始终要求这三项；默认值仅用于本地，生产必须覆盖并开启鉴权。
+      - NACOS_AUTH_TOKEN=${NACOS_AUTH_TOKEN:-bmFidS1sb2NhbC1kZXYtb25seS1uYWNvcy1zaWduaW5nLWtleQ==}
+      - NACOS_AUTH_IDENTITY_KEY=${NACOS_AUTH_IDENTITY_KEY:-nabu-local}
+      - NACOS_AUTH_IDENTITY_VALUE=${NACOS_AUTH_IDENTITY_VALUE:-nabu-local-dev-only}
       - PREFER_HOST_MODE=hostname
     ports:
       - "8848:8848"
+      - "8849:8080" # Nacos 3 控制台独立端口，避开 Higress 的宿主机 8080。
       - "9848:9848"
       - "9849:9849"
     volumes:
       - ./data/nacos/logs:/home/nacos/logs
       - ./data/nacos/data:/home/nacos/data
     healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost:8848/nacos/v1/console/health/readiness || exit 1"]
+      test: ["CMD-SHELL", "curl -sf http://localhost:8848/nacos/v3/admin/core/state/readiness || exit 1"]
       interval: 15s
       timeout: 10s
       retries: 10

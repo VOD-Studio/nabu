@@ -8,7 +8,7 @@ name: nabu
 services:
 
   otel-collector:
-    image: otel/opentelemetry-collector-contrib:latest
+    image: otel/opentelemetry-collector-contrib@sha256:fd328de2552466ad78385e1b1289c3f2402b1c45f265b252aab1955b42845ac1
     container_name: nabu-otel-collector
     restart: unless-stopped
     volumes:
@@ -44,7 +44,7 @@ services:
     networks: [nabu-net]
 
   tempo:
-    image: grafana/tempo:latest
+    image: grafana/tempo@sha256:1ce31d6d7ffab62189685e8c47881d4a561c5d38bd0dbd66e40ca83cef07923d
     container_name: nabu-tempo
     restart: unless-stopped
     user: "0:0"

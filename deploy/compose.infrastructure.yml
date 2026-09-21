@@ -23,9 +23,10 @@ services:
       - "3307:3306"
     volumes:
       - ./data/mysql-user:/var/lib/mysql
-    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_general_ci --default-authentication-plugin=mysql_native_password
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_general_ci
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-root123456}"]
+      # 用业务账号经 TCP 查询，避免临时初始化进程或 Access denied 被 mysqladmin ping 误判为就绪。
+      test: ["CMD-SHELL", 'MYSQL_PWD="$$MYSQL_PASSWORD" mysql --protocol=TCP -h127.0.0.1 -u"$$MYSQL_USER" -D"$$MYSQL_DATABASE" -Nse "SELECT 1"']
       interval: 10s
       timeout: 5s
       retries: 10
@@ -44,9 +45,10 @@ services:
       - "3308:3306"
     volumes:
       - ./data/mysql-forum:/var/lib/mysql
-    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_general_ci --default-authentication-plugin=mysql_native_password
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_general_ci
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-root123456}"]
+      # 用业务账号经 TCP 查询，避免临时初始化进程或 Access denied 被 mysqladmin ping 误判为就绪。
+      test: ["CMD-SHELL", 'MYSQL_PWD="$$MYSQL_PASSWORD" mysql --protocol=TCP -h127.0.0.1 -u"$$MYSQL_USER" -D"$$MYSQL_DATABASE" -Nse "SELECT 1"']
       interval: 10s
       timeout: 5s
       retries: 10
@@ -65,9 +67,10 @@ services:
       - "3310:3306"
     volumes:
       - ./data/mysql-notify:/var/lib/mysql
-    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_general_ci --default-authentication-plugin=mysql_native_password
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_general_ci
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-root123456}"]
+      # 用业务账号经 TCP 查询，避免临时初始化进程或 Access denied 被 mysqladmin ping 误判为就绪。
+      test: ["CMD-SHELL", 'MYSQL_PWD="$$MYSQL_PASSWORD" mysql --protocol=TCP -h127.0.0.1 -u"$$MYSQL_USER" -D"$$MYSQL_DATABASE" -Nse "SELECT 1"']
       interval: 10s
       timeout: 5s
       retries: 10
@@ -86,9 +89,10 @@ services:
       - "3311:3306"
     volumes:
       - ./data/mysql-file:/var/lib/mysql
-    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_general_ci --default-authentication-plugin=mysql_native_password
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_general_ci
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-root123456}"]
+      # 用业务账号经 TCP 查询，避免临时初始化进程或 Access denied 被 mysqladmin ping 误判为就绪。
+      test: ["CMD-SHELL", 'MYSQL_PWD="$$MYSQL_PASSWORD" mysql --protocol=TCP -h127.0.0.1 -u"$$MYSQL_USER" -D"$$MYSQL_DATABASE" -Nse "SELECT 1"']
       interval: 10s
       timeout: 5s
       retries: 10
@@ -107,9 +111,10 @@ services:
       - "3312:3306"
     volumes:
       - ./data/mysql-moderation:/var/lib/mysql
-    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_general_ci --default-authentication-plugin=mysql_native_password
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_general_ci
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-root123456}"]
+      # 用业务账号经 TCP 查询，避免临时初始化进程或 Access denied 被 mysqladmin ping 误判为就绪。
+      test: ["CMD-SHELL", 'MYSQL_PWD="$$MYSQL_PASSWORD" mysql --protocol=TCP -h127.0.0.1 -u"$$MYSQL_USER" -D"$$MYSQL_DATABASE" -Nse "SELECT 1"']
       interval: 10s
       timeout: 5s
       retries: 10
@@ -163,7 +168,7 @@ services:
   # 这里改用 named volume 规避该权限问题（更省心，优先保证部署简单）。
   # ---------------------------------------------------------------------------------
   rustfs:
-    image: rustfs/rustfs:latest
+    image: rustfs/rustfs@sha256:8cc9801755448b71a786705ce76692c77e14936cccd87cf2fc31842e58f4d1ff
     container_name: nabu-rustfs
     restart: unless-stopped
     security_opt:
@@ -173,6 +178,8 @@ services:
       - "9001:9001"
     environment:
       - RUSTFS_VOLUMES=/data/rustfs{0...3}
+      # 仅本地联调：四个目录共享 Docker 虚拟磁盘；生产必须使用独立物理磁盘并移除此项。
+      - RUSTFS_UNSAFE_BYPASS_DISK_CHECK=true
       - RUSTFS_ADDRESS=0.0.0.0:9000
       - RUSTFS_CONSOLE_ADDRESS=0.0.0.0:9001
       - RUSTFS_CONSOLE_ENABLE=true

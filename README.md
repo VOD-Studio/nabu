@@ -24,7 +24,7 @@ CDC 同步、全文搜索、对象存储、网关、可观测性……
 | 缓存 | Redis 7 + JetCache | 2.7.9 |
 | CDC | Canal | server latest（本地演示，简化消息结构） |
 | 搜索 | Elasticsearch | 8.18.1 |
-| 对象存储 | RustFS（S3 兼容） | latest，AWS SDK for Java v2 (2.29.52) 接入 |
+| 对象存储 | RustFS（S3 兼容） | 1.0.0（镜像 digest 固定），AWS SDK for Java v2 (2.29.52) 接入 |
 | JSON | Fastjson2 | 2.0.65 |
 | 上下文传播 | TTL (transmittable-thread-local) | 2.14.5 |
 | 网关 | Higress | Docker All-in-One latest |
@@ -161,7 +161,7 @@ cd deploy
 
 | 用途 | 地址 |
 |---|---|
-| Nacos 控制台 | http://localhost:8848/nacos |
+| Nacos 控制台 | http://localhost:8849/（Nacos 3 独立控制台；服务 API 仍为 8848） |
 | Sentinel Dashboard | http://localhost:8858（sentinel/sentinel） |
 | RocketMQ Dashboard | http://localhost:9878 |
 | Seata（TC）控制端口 | localhost:7091 |
