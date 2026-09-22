@@ -4,7 +4,7 @@
 #   compose.infrastructure.yml   MySQL / Redis / Elasticsearch / RustFS
 #   compose.middleware.yml       Nacos / Sentinel / RocketMQ / Seata / Canal / Higress
 #   compose.observability.yml    OpenTelemetry / Prometheus / Grafana / Loki / Tempo
-#   compose.app.yml              13 个 Java 微服务
+#   compose.app.yml              12 个 Java 微服务
 #
 # 启动方式（务必按顺序传入 -f，中间件依赖基础设施，应用依赖中间件）：
 #   docker compose \

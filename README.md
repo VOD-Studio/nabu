@@ -76,6 +76,62 @@ nabu/
 | nabu-task-service       | 18090     | 28090              |
 | nabu-admin-service      | 18091     | 28091              |
 
+## 容器清单
+
+本地编排拆成 5 个 compose 文件，按依赖层次叠加（`compose.yml` 只声明公共网络 `nabu-net`）：
+
+| Compose 文件                 | 层       | 内容                                                       |
+| ---------------------------- | -------- | ---------------------------------------------------------- |
+| `compose.infrastructure.yml` | 基础设施 | MySQL（按域拆 5 个实例）/ Redis / Elasticsearch / RustFS   |
+| `compose.middleware.yml`     | 中间件   | Nacos / Sentinel / RocketMQ / Seata / Canal / Higress     |
+| `compose.observability.yml`  | 可观测性 | OpenTelemetry Collector / Prometheus / Loki / Tempo / Grafana |
+| `compose.app.yml`            | 应用     | 12 个 Java 微服务（见上方"服务端口一览"）                 |
+
+### 基础设施（compose.infrastructure.yml）
+
+| 容器名               | 镜像               | 宿主端口   | 用途                                                          |
+| -------------------- | ------------------- | ---------- | ------------------------------------------------------------- |
+| nabu-mysql-user      | mysql:8.4           | 3307       | 用户域私有库 `nabu_user`                                      |
+| nabu-mysql-forum     | mysql:8.4           | 3308       | 论坛域私有库 `nabu_forum`，Canal binlog 监听对象              |
+| nabu-mysql-notify    | mysql:8.4           | 3310       | 通知域私有库 `nabu_notify`                                    |
+| nabu-mysql-file      | mysql:8.4           | 3311       | 文件元数据私有库 `nabu_file`                                  |
+| nabu-mysql-moderation| mysql:8.4           | 3312       | 审核域私有库 `nabu_moderation`                                |
+| nabu-redis           | redis:7-alpine      | 6380       | 缓存/分布式锁/Bitmap/ZSet（宿主避让 6379，见下文"端口避让"）  |
+| nabu-elasticsearch   | elasticsearch:8.18.1| 9200       | 全文搜索（单节点，关闭 xpack 安全）                           |
+| nabu-rustfs          | rustfs:1.0.0        | 9000、9001 | S3 兼容对象存储，file-service 用 AWS S3 SDK 接入；9001 为控制台 |
+
+> 每个业务域独立一个 MySQL 实例，模拟微服务"数据库私有"原则；资源紧张时可合并为一个 MySQL + 多 database。
+
+### 中间件（compose.middleware.yml）
+
+| 容器名                 | 镜像                          | 宿主端口             | 用途                                                        |
+| ---------------------- | ----------------------------- | -------------------- | ----------------------------------------------------------- |
+| nabu-nacos             | nacos-server:v3.0.3           | 8848、8849、9848、9849 | 注册中心 + 配置中心（standalone 内嵌 derby）；8849 为 v3 控制台 |
+| nabu-sentinel-dashboard| sentinel-dashboard:1.8.9       | 8858                 | 流控/熔断规则可视化与实时监控                               |
+| nabu-rmqnamesrv        | rocketmq:5.3.1                | 9876                 | RocketMQ NameServer                                         |
+| nabu-rmqbroker         | rocketmq:5.3.1                | 10909、10911、10912  | RocketMQ Broker（单机）                                      |
+| nabu-rmqproxy          | rocketmq:5.3.1                | 8081、8082           | RocketMQ Proxy，Producer/Consumer 统一接入                   |
+| nabu-rmqdashboard      | rocketmq-dashboard            | 9878                 | RocketMQ 控制台                                             |
+| nabu-seata-server      | seata-server:2.5.0            | 8091、7091           | Seata AT 分布式事务协调器（TC），注册到 Nacos；7091 为指标端口 |
+| nabu-canal-server      | canal-server:latest           | 11111、11112         | 监听 mysql-forum binlog → Elasticsearch 索引同步             |
+| nabu-higress           | higress all-in-one:latest     | 8001、8080、18443    | 网关 + 控制台（All-in-One 单容器）；18443 为 HTTPS           |
+
+### 可观测性（compose.observability.yml）
+
+各 Java 服务通过 OTLP 上报到 `otel-collector`，再分发到后端存储，Grafana 统一可视化。
+
+| 容器名            | 镜像                    | 宿主端口       | 用途                                                         |
+| ----------------- | ----------------------- | -------------- | ------------------------------------------------------------ |
+| nabu-otel-collector | otel-collector-contrib  | 4317、4318、9464 | OTLP 接收（gRPC/HTTP），9464 供 Prometheus 抓取汇总指标       |
+| nabu-prometheus   | prometheus:latest       | 9090           | 指标抓取与存储                                               |
+| nabu-loki         | loki:3.4.2              | 3100           | 日志聚合                                                     |
+| nabu-tempo        | tempo                   | 3200           | 链路追踪                                                     |
+| nabu-grafana      | grafana:latest          | 3000           | 可视化面板（默认 admin/admin123）                            |
+
+### 应用（compose.app.yml）
+
+12 个 Java 微服务，容器名与服务名一致（如 `nabu-user-service`），全部共用根目录 `Dockerfile`，通过 `build.args.MODULE` 区分构建。端口映射见上方"服务端口一览"——仅映射 HTTP `1808x`，**不映射** Dubbo Triple `2808x`，因此不要与裸机服务混跑（详见下文"本地启动"§2 注意 3）。
+
 ## 编译
 
 ```bash
