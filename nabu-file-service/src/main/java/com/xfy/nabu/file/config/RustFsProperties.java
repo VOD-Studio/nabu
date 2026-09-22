@@ -11,8 +11,10 @@ public class RustFsProperties {
     /** S3 兼容 API 地址 */
     private String endpoint = "http://127.0.0.1:9000";
 
-    private String accessKey = "rustfsadmin";
-    private String secretKey = "rustfsadmin";
+    /** 凭据不在代码里留默认值，必须由 deploy/.env 的 RUSTFS_ACCESS_KEY/RUSTFS_SECRET_KEY 注入 */
+    private String accessKey = "";
+
+    private String secretKey = "";
     private String bucket = "nabu-files";
     /** RustFS 不校验真实 region，这里只是 AWS SDK 客户端构建时的必填占位值 */
     private String region = "us-east-1";

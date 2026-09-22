@@ -161,8 +161,17 @@ cd deploy
 > `deploy/.env.example`；首次运行脚本时若没有 `.env` 会自动复制模板生成，请按需修改口令。
 > 已经起过 MySQL（存在 `deploy/data/mysql-*`）时不要用模板覆盖现有 `.env`。
 
-各服务 `application.yml` 里的默认值就是 `127.0.0.1:<容器映射端口>`，裸机跑
-`mvn -pl nabu-user-service spring-boot:run` 之类命令即可直接连上。
+各服务 `application.yml` 里的地址默认值就是 `127.0.0.1:<容器映射端口>`，但**数据库与对象存储的口令
+没有默认值**，只能由 `deploy/.env` 提供。裸机跑之前先导出凭据（只导出 `*_PASSWORD` / `*_USERNAME` /
+`RUSTFS_ACCESS_KEY` / `RUSTFS_SECRET_KEY`，不导出 `*_HOST`，所以容器地址默认值照常生效）：
+
+```bash
+source deploy/scripts/dev-env.sh
+mvn -pl nabu-user-service spring-boot:run
+```
+
+漏掉这一步时服务会在启动阶段报 `Could not resolve placeholder 'MYSQL_USER_PASSWORD'`，按提示补上即可；
+`./deploy/scripts/run-host.sh` / `run-host-bg.sh` 已内置该 source，不需要手动执行。
 
 只想先验证链路，可以单独起 Nacos（standalone 内嵌 derby，无需外部数据库）：
 
@@ -280,8 +289,9 @@ RustFS 的四个目录在本地共用 Docker 虚拟磁盘，因此只在此开�
 ## 数据库连接约定
 
 各服务使用独立 MySQL 实例（本地端口 3307/3308/3310/3311/3312，容器内统一 3306），
-账号统一 `nabu`，口令由 `deploy/.env` 提供（模板里是 `change-me-nabu` 占位符）。
-这些口令仅限本地/开发环境，生产环境务必更换，且不要把填好真实口令的 `.env` 提交进仓库。
+账号统一 `nabu`，口令只存在于 `deploy/.env`（模板 `deploy/.env.example` 里是 `change-me-nabu` 占位符），
+compose 与 `application.yml` 都不再保留明文默认值。这些口令仅限本地/开发环境，生产环境务必更换，
+且不要把填好真实口令的 `.env` 提交进仓库。
 
 ## 说明
 

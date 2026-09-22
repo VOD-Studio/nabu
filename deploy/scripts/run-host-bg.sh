@@ -11,6 +11,8 @@ SERVICES=(nabu-user-service nabu-auth-service nabu-moderation-service
   nabu-forum-service nabu-social-service nabu-stat-service
   nabu-notify-service nabu-search-service nabu-file-service
   nabu-task-service nabu-admin-service nabu-web)
+# 口令只来自 deploy/.env（application.yml 不再留默认值），子进程 java 继承这些变量
+. "$ROOT/deploy/scripts/dev-env.sh"
 mkdir -p "$LOGDIR"
 : > "$LOGDIR/host-pids.txt"
 for m in "${SERVICES[@]}"; do

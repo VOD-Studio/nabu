@@ -30,6 +30,10 @@ public class RustFsClientConfig {
     }
 
     private StaticCredentialsProvider credentialsProvider(RustFsProperties props) {
+        if (props.getAccessKey().isBlank() || props.getSecretKey().isBlank()) {
+            throw new IllegalStateException("RustFS 凭据为空：请在 deploy/.env 设置 RUSTFS_ACCESS_KEY/RUSTFS_SECRET_KEY，"
+                    + "裸机运行时先 source deploy/scripts/dev-env.sh");
+        }
         return StaticCredentialsProvider.create(AwsBasicCredentials.create(props.getAccessKey(), props.getSecretKey()));
     }
 

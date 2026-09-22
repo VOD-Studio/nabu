@@ -44,4 +44,4 @@ JUnit 5 + Mockito + Testcontainers 1.20.6 are managed in the root pom; the suite
 
 ## Security & Configuration
 
-Local DB credentials (`nabu`/`nabu123456`) and `.env` values are dev-only — never reuse in production or commit real secrets. Migrations are append-only once shared.
+Local DB credentials live only in `deploy/.env` (git-ignored; template is `deploy/.env.example`) and are dev-only — never reuse in production or commit real secrets. Migrations are append-only once shared.

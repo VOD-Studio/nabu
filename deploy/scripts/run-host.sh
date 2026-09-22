@@ -27,12 +27,14 @@ case "$cmd" in
          tmux list-windows -t "$SESSION" -F '#{window_name}' 2>/dev/null | grep -qx "$m"; then
         echo "skip: $m （窗口已存在）"; continue
       fi
+      # 口令只来自 deploy/.env；tmux server 不继承调用方环境，所以必须把 source 写进被启动的命令串里。
+      launch=". \"$ROOT/deploy/scripts/dev-env.sh\" && exec java $HEAP -jar \"$jar\""
       if [ "$created" = 0 ] && ! tmux has-session -t "$SESSION" 2>/dev/null; then
         tmux new-session -d -s "$SESSION" -n "$m" \
-          "java $HEAP -jar \"$jar\" 2>&1 | tee \"$LOGDIR/$m.log\""
+          "bash -c '$launch' 2>&1 | tee \"$LOGDIR/$m.log\""
       else
         tmux new-window -a -t "$SESSION" -n "$m" \
-          "java $HEAP -jar \"$jar\" 2>&1 | tee \"$LOGDIR/$m.log\""
+          "bash -c '$launch' 2>&1 | tee \"$LOGDIR/$m.log\""
       fi
       created=1
       echo "launched: $m"

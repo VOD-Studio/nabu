@@ -15,10 +15,10 @@ services:
     container_name: nabu-mysql-user
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root123456}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?未设置：请在 deploy/.env 配置 MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: nabu_user
       MYSQL_USER: ${MYSQL_USER_USERNAME:-nabu}
-      MYSQL_PASSWORD: ${MYSQL_USER_PASSWORD:-nabu123456}
+      MYSQL_PASSWORD: ${MYSQL_USER_PASSWORD:?未设置：请在 deploy/.env 配置 MYSQL_USER_PASSWORD}
     ports:
       - "3307:3306"
     volumes:
@@ -37,10 +37,10 @@ services:
     container_name: nabu-mysql-forum
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root123456}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?未设置：请在 deploy/.env 配置 MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: nabu_forum
       MYSQL_USER: ${MYSQL_FORUM_USERNAME:-nabu}
-      MYSQL_PASSWORD: ${MYSQL_FORUM_PASSWORD:-nabu123456}
+      MYSQL_PASSWORD: ${MYSQL_FORUM_PASSWORD:?未设置：请在 deploy/.env 配置 MYSQL_FORUM_PASSWORD}
     ports:
       - "3308:3306"
     volumes:
@@ -59,10 +59,10 @@ services:
     container_name: nabu-mysql-notify
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root123456}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?未设置：请在 deploy/.env 配置 MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: nabu_notify
       MYSQL_USER: ${MYSQL_NOTIFY_USERNAME:-nabu}
-      MYSQL_PASSWORD: ${MYSQL_NOTIFY_PASSWORD:-nabu123456}
+      MYSQL_PASSWORD: ${MYSQL_NOTIFY_PASSWORD:?未设置：请在 deploy/.env 配置 MYSQL_NOTIFY_PASSWORD}
     ports:
       - "3310:3306"
     volumes:
@@ -81,10 +81,10 @@ services:
     container_name: nabu-mysql-file
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root123456}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?未设置：请在 deploy/.env 配置 MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: nabu_file
       MYSQL_USER: ${MYSQL_FILE_USERNAME:-nabu}
-      MYSQL_PASSWORD: ${MYSQL_FILE_PASSWORD:-nabu123456}
+      MYSQL_PASSWORD: ${MYSQL_FILE_PASSWORD:?未设置：请在 deploy/.env 配置 MYSQL_FILE_PASSWORD}
     ports:
       - "3311:3306"
     volumes:
@@ -103,10 +103,10 @@ services:
     container_name: nabu-mysql-moderation
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root123456}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?未设置：请在 deploy/.env 配置 MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: nabu_moderation
       MYSQL_USER: ${MYSQL_MODERATION_USERNAME:-nabu}
-      MYSQL_PASSWORD: ${MYSQL_MODERATION_PASSWORD:-nabu123456}
+      MYSQL_PASSWORD: ${MYSQL_MODERATION_PASSWORD:?未设置：请在 deploy/.env 配置 MYSQL_MODERATION_PASSWORD}
     ports:
       - "3312:3306"
     volumes:
@@ -184,8 +184,8 @@ services:
       - RUSTFS_CONSOLE_ADDRESS=0.0.0.0:9001
       - RUSTFS_CONSOLE_ENABLE=true
       - RUSTFS_CONSOLE_CORS_ALLOWED_ORIGINS=*
-      - RUSTFS_ACCESS_KEY=${RUSTFS_ACCESS_KEY:-rustfsadmin}
-      - RUSTFS_SECRET_KEY=${RUSTFS_SECRET_KEY:-rustfsadmin}
+      - RUSTFS_ACCESS_KEY=${RUSTFS_ACCESS_KEY:?未设置：请在 deploy/.env 配置 RUSTFS_ACCESS_KEY}
+      - RUSTFS_SECRET_KEY=${RUSTFS_SECRET_KEY:?未设置：请在 deploy/.env 配置 RUSTFS_SECRET_KEY}
       - RUSTFS_OBS_LOGGER_LEVEL=info
     volumes:
       - rustfs-data:/data

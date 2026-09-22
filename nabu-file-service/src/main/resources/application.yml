@@ -38,7 +38,7 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://${MYSQL_FILE_HOST:127.0.0.1}:${MYSQL_FILE_PORT:3311}/nabu_file?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
     username: ${MYSQL_FILE_USERNAME:nabu}
-    password: ${MYSQL_FILE_PASSWORD:nabu123456}
+    password: ${MYSQL_FILE_PASSWORD}
     type: com.alibaba.druid.pool.DruidDataSource
     druid:
       initial-size: 5
@@ -72,8 +72,8 @@ dubbo:
 nabu:
   rustfs:
     endpoint: ${RUSTFS_ENDPOINT:http://127.0.0.1:9000}
-    access-key: ${RUSTFS_ACCESS_KEY:rustfsadmin}
-    secret-key: ${RUSTFS_SECRET_KEY:rustfsadmin}
+    access-key: ${RUSTFS_ACCESS_KEY}
+    secret-key: ${RUSTFS_SECRET_KEY}
     bucket: ${RUSTFS_BUCKET:nabu-files}
     region: us-east-1
     presign-expire-minutes: 15
