@@ -26,6 +26,7 @@ spring:
     redis:
       host: ${REDIS_HOST:127.0.0.1}
       port: ${REDIS_PORT:6380}
+      password: ${REDIS_PASSWORD}
       # 各服务用不同 database 隔离，本服务专用 database=2（存 refresh token）
       database: 2
 

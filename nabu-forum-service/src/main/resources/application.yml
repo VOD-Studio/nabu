@@ -47,6 +47,7 @@ spring:
     redis:
       host: ${REDIS_HOST:127.0.0.1}
       port: ${REDIS_PORT:6380}
+      password: ${REDIS_PASSWORD}
       database: 3
 
 mybatis:
@@ -104,7 +105,11 @@ jetcache:
       broadcastChannel: ${spring.application.name}-jetcache
       valueEncoder: java
       valueDecoder: java
-      uri: redis://${REDIS_HOST:127.0.0.1}:${REDIS_PORT:6380}/3
+      # JetCache 走 Redisson 自建连接，不读 spring.data.redis.password，
+      # 所以 Redis 开了 requirepass 后口令必须写进这个 uri。
+      # 注意：口令含 @ : / 等字符时需先做 URL 编码。
+      uri: "redis://:${REDIS_PASSWORD}@${REDIS_HOST:127.0.0.1}\
+            :${REDIS_PORT:6380}/3"
 
 management:
   endpoints:

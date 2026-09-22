@@ -159,6 +159,7 @@ cd deploy
 
 > 环境变量放在 `deploy/.env`（含口令，已被 `.gitignore` 忽略、不入库）。仓库只提交模板
 > `deploy/.env.example`；首次运行脚本时若没有 `.env` 会自动复制模板生成，请按需修改口令。
+> 模板里 `NACOS_PASSWORD` / `REDIS_PASSWORD` / `JWT_SECRET` 与三个面板口令
 > 已经起过 MySQL（存在 `deploy/data/mysql-*`）时不要用模板覆盖现有 `.env`。
 
 各服务 `application.yml` 里的地址默认值就是 `127.0.0.1:<容器映射端口>`，但**数据库与对象存储的口令
@@ -260,7 +261,8 @@ done
 
 RustFS 1.0.0、Tempo 3.0.0、Collector 0.161.0 的镜像使用 digest 固定。
 RustFS 的四个目录在本地共用 Docker 虚拟磁盘，因此只在此开发编排中开启磁盘检查豁免；
-生产必须使用独立物理磁盘。Nacos 的默认鉴权材料也仅用于本地，生产需覆盖并启用鉴权。
+生产必须使用独立物理磁盘。Nacos 服务端鉴权在本地也默认开启（`NACOS_AUTH_ENABLE=true`），
+Redis 同样默认 `requirepass`；签名/互信密钥与口令仍仅适用于本地，生产必须全部覆盖。
 
 ### 3. 关键管理入口
 
@@ -289,9 +291,29 @@ RustFS 的四个目录在本地共用 Docker 虚拟磁盘，因此只在此开�
 ## 数据库连接约定
 
 各服务使用独立 MySQL 实例（本地端口 3307/3308/3310/3311/3312，容器内统一 3306），
-账号统一 `nabu`，口令只存在于 `deploy/.env`（模板 `deploy/.env.example` 里是 `change-me-nabu` 占位符），
-compose 与 `application.yml` 都不再保留明文默认值。这些口令仅限本地/开发环境，生产环境务必更换，
-且不要把填好真实口令的 `.env` 提交进仓库。
+业务账号统一 `admin`；**所有口令只存在于 `deploy/.env`**（模板 `deploy/.env.example` 里是
+`change-me-*` 占位符），compose 与 `application.yml` 都不再保留明文口令默认值。
+`deploy/.env` 已被 `.gitignore` 忽略，不要把填好真实口令的本文件提交进仓库。
+
+漏配会 fail-fast 而不是静默连不上，两层各管一段：
+
+- compose 层用 `${VAR:?}`：`REDIS_PASSWORD`、`NACOS_PASSWORD`、`MYSQL_ROOT_PASSWORD` 与 5 个
+  `MYSQL_*_PASSWORD`、`JWT_SECRET`（只注入 auth-service）、`SENTINEL_AUTH_PASSWORD`、
+  `GRAFANA_ADMIN_PASSWORD`、`DRUID_MONITOR_PASSWORD`（只注入开了 Druid 监控的 5 个服务）。
+- Spring 层用无兜底的 `${VAR}`：各服务 `application.yml` 里的数据源口令、`spring.data.redis.password`、
+  JetCache 的 `redis://:口令@…` 连接串、Druid `login-password`、`nabu.jwt.secret`。
+
+裸机跑服务前先 `source deploy/scripts/dev-env.sh`，它把上述凭据（`*_PASSWORD` / `*_USERNAME` /
+`*_ACCESS_KEY` / `*_SECRET`，含 `JWT_SECRET`）导出到当前 shell；漏了这一步服务会直接报
+`Could not resolve placeholder`。`JWT_SECRET` 是 HMAC 密钥不是口令，必须用 >=512-bit 的随机值
+（`openssl rand -base64 64`），仓库内已不留默认密钥。
+
+两个账号是例外：
+
+- **Canal 用独立的 `canal` 账号**（需要全局 binlog 权限，不能复用业务账号），口令另见
+  `deploy/config/canal/instance.properties.example` 与 `deploy/config/mysql/init/README.md`。
+- **Nacos 内置 `nacos` 账号**的口令存在容器内嵌 derby 里，改 `.env` 不会改到服务端，
+  新环境必须按上面「首次开鉴权：Nacos 内置账号必须自己建」一节先建号。
 
 ## 说明
 

@@ -131,7 +131,13 @@ services:
       - "6380:6379"
     volumes:
       - ./data/redis:/data
-    command: redis-server --appendonly yes
+    # 折叠标量（>-）会把下面两行拼回同一个字符串，只为压行宽，渲染出的 command 不变。
+    command: >-
+      redis-server --appendonly yes
+      --requirepass ${REDIS_PASSWORD:?REDIS_PASSWORD 未设置}
+    environment:
+      # 仅供容器内 redis-cli（健康检查）自动认证，避开把口令拼在命令行参数里。
+      REDISCLI_AUTH: ${REDIS_PASSWORD}
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s

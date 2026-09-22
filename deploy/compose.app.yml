@@ -43,6 +43,8 @@ services:
       - ROCKETMQ_NAMESRV=${ROCKETMQ_NAMESRV}
       - REDIS_HOST=${REDIS_HOST}
       - REDIS_PORT=${REDIS_PORT}
+      # Redis 已开 requirepass，不传则占位符解析失败。
+      - REDIS_PASSWORD=${REDIS_PASSWORD:?deploy/.env 未配置}
       - MYSQL_USER_HOST=${MYSQL_USER_HOST}
       - MYSQL_USER_PORT=${MYSQL_USER_PORT}
       - MYSQL_USER_USERNAME=${MYSQL_USER_USERNAME}
@@ -82,6 +84,8 @@ services:
       - SENTINEL_DASHBOARD=${SENTINEL_DASHBOARD}
       - REDIS_HOST=${REDIS_HOST}
       - REDIS_PORT=${REDIS_PORT}
+      # Redis 已开 requirepass，不传则占位符解析失败。
+      - REDIS_PASSWORD=${REDIS_PASSWORD:?deploy/.env 未配置}
     # 有健康检查的依赖等待 service_healthy；其余依赖等待进程启动。
     # 分组联调时只拉起本服务声明的依赖。
     depends_on:
@@ -115,6 +119,8 @@ services:
       - ROCKETMQ_NAMESRV=${ROCKETMQ_NAMESRV}
       - REDIS_HOST=${REDIS_HOST}
       - REDIS_PORT=${REDIS_PORT}
+      # Redis 已开 requirepass，不传则占位符解析失败。
+      - REDIS_PASSWORD=${REDIS_PASSWORD:?deploy/.env 未配置}
       - MYSQL_FORUM_HOST=${MYSQL_FORUM_HOST}
       - MYSQL_FORUM_PORT=${MYSQL_FORUM_PORT}
       - MYSQL_FORUM_USERNAME=${MYSQL_FORUM_USERNAME}
@@ -159,6 +165,8 @@ services:
       - ROCKETMQ_NAMESRV=${ROCKETMQ_NAMESRV}
       - REDIS_HOST=${REDIS_HOST}
       - REDIS_PORT=${REDIS_PORT}
+      # Redis 已开 requirepass，不传则占位符解析失败。
+      - REDIS_PASSWORD=${REDIS_PASSWORD:?deploy/.env 未配置}
     # 有健康检查的依赖等待 service_healthy；其余依赖等待进程启动。
     # 分组联调时只拉起本服务声明的依赖。
     depends_on:
@@ -344,6 +352,8 @@ services:
       - SENTINEL_DASHBOARD=${SENTINEL_DASHBOARD}
       - REDIS_HOST=${REDIS_HOST}
       - REDIS_PORT=${REDIS_PORT}
+      # Redis 已开 requirepass，不传则占位符解析失败。
+      - REDIS_PASSWORD=${REDIS_PASSWORD:?deploy/.env 未配置}
     # 有健康检查的依赖等待 service_healthy；其余依赖等待进程启动。
     # 分组联调时只拉起本服务声明的依赖。
     depends_on:

@@ -33,6 +33,7 @@ spring:
     redis:
       host: ${REDIS_HOST:127.0.0.1}
       port: ${REDIS_PORT:6380}
+      password: ${REDIS_PASSWORD}
       # 本模块把 Redis 当主存储用（点赞/关注/签到），单独占用一个 database 与其余服务的缓存数据隔离
       database: 4
 
