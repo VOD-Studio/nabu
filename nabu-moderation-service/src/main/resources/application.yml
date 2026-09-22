@@ -43,7 +43,7 @@ spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://${MYSQL_MODERATION_HOST:127.0.0.1}:${MYSQL_MODERATION_PORT:3312}/nabu_moderation?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
-    username: ${MYSQL_MODERATION_USERNAME:nabu}
+    username: ${MYSQL_MODERATION_USERNAME:admin}
     password: ${MYSQL_MODERATION_PASSWORD}
     type: com.alibaba.druid.pool.DruidDataSource
     druid:

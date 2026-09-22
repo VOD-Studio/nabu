@@ -10,7 +10,11 @@ canal.instance.master.address=mysql-forum:3306
 
 # 连接 MySQL 的账号（需要 SELECT + REPLICATION SLAVE + REPLICATION CLIENT 权限，
 # 见 deploy/config/mysql/init/README.md）
+# 注意：这里刻意不复用业务账号 admin——MYSQL_USER 建的账号只拿到自己库的 db 级权限，
+# 没有全局 REPLICATION SLAVE/CLIENT，拿它订阅 binlog 会失败。
 # 口令：canal-server 在 compose 里没挂本目录、也不做环境变量插值（.example 要靠
+cp 成真实文件才生效），所以这里不能写 ${VAR}，而是留占位值：启用时把它换成
+# deploy/.env 里 MYSQL_FORUM_PASSWORD 的实际值，并与 deploy/config/mysql/init/
 # README.md 里 CREATE USER 的口令保持一致（三处必须一致）。
 canal.instance.dbUsername=canal
 canal.instance.dbPassword=change-me-canal
