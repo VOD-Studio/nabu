@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 # 把 deploy/.env 里的"凭据类"变量导出到当前 shell，供裸机运行的 Java 进程读取。
-# 只导出 *PASSWORD / *USERNAME / *ACCESS_KEY / *SECRET_KEY：.env 里的 *_HOST / *_PORT
-# 是容器网络地址，裸机跑必须继续用 application.yml 里的 127.0.0.1 默认值，不能覆盖。
+# 只导出 *PASSWORD / *USERNAME / *ACCESS_KEY / *SECRET(_KEY)（含 JWT_SECRET）：
+# .env 里的 *_HOST / *_PORT 是容器网络地址，裸机跑必须继续用 application.yml 里的
+# 127.0.0.1 默认值，不能覆盖。NACOS_AUTH_* 是 Nacos 服务端的签名/互信密钥，
+# 客户端不需要，后缀不匹配故不导出。
 # 用法：source deploy/scripts/dev-env.sh    （之后 mvn spring-boot:run / java -jar 即可认证）
 _src="${BASH_SOURCE[0]:-$0}"
 _deploy="$(cd "$(dirname "$_src")/.." && pwd)"

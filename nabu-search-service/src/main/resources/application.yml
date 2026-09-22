@@ -15,11 +15,15 @@ spring:
     nacos:
       config:
         server-addr: ${NACOS_ADDRESS:127.0.0.1}:8848
+        username: ${NACOS_USERNAME:nacos}
+        password: ${NACOS_PASSWORD}
         namespace: ${NACOS_NAMESPACE:}
         group: DEFAULT_GROUP
         file-extension: yaml
       discovery:
         server-addr: ${NACOS_ADDRESS:127.0.0.1}:8848
+        username: ${NACOS_USERNAME:nacos}
+        password: ${NACOS_PASSWORD}
         namespace: ${NACOS_NAMESPACE:}
     sentinel:
       transport:
@@ -28,6 +32,8 @@ spring:
         ds1:
           nacos:
             server-addr: ${NACOS_ADDRESS:127.0.0.1}:8848
+            username: ${NACOS_USERNAME:nacos}
+            password: ${NACOS_PASSWORD}
             dataId: ${spring.application.name}-flow-rules
             groupId: DEFAULT_GROUP
             rule-type: flow
@@ -46,6 +52,8 @@ dubbo:
     register-mode: instance
     parameters:
       namespace: ${NACOS_NAMESPACE:}
+      username: ${NACOS_USERNAME:nacos}
+      password: ${NACOS_PASSWORD}
 
 rocketmq:
   name-server: ${ROCKETMQ_NAMESRV:127.0.0.1:9876}

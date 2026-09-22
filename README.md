@@ -160,6 +160,7 @@ cd deploy
 > 环境变量放在 `deploy/.env`（含口令，已被 `.gitignore` 忽略、不入库）。仓库只提交模板
 > `deploy/.env.example`；首次运行脚本时若没有 `.env` 会自动复制模板生成，请按需修改口令。
 > 模板里 `NACOS_PASSWORD` / `REDIS_PASSWORD` / `JWT_SECRET` 与三个面板口令
+> 另外 `NACOS_AUTH_TOKEN` / `NACOS_AUTH_IDENTITY_KEY` / `NACOS_AUTH_IDENTITY_VALUE` 模板里故意留空，
 > 已经起过 MySQL（存在 `deploy/data/mysql-*`）时不要用模板覆盖现有 `.env`。
 
 各服务 `application.yml` 里的地址默认值就是 `127.0.0.1:<容器映射端口>`，但**数据库与对象存储的口令
@@ -180,6 +181,18 @@ mvn -pl nabu-user-service spring-boot:run
 cd deploy
 docker compose --env-file .env -f compose.yml -f compose.middleware.yml up -d nacos
 ```
+#### 首次开鉴权：Nacos 内置账号必须自己建（新环境必做）
+本地已开鉴权（`NACOS_AUTH_ENABLE=true`），而 Nacos 的账号存在容器内嵌 derby 里（
+`deploy/data/nacos/data/derby-data`）——**只改 `deploy/.env` 里的 `NACOS_PASSWORD` 不会改到服务端**。
+全新环境首次启动时 derby 里一个用户都没有（不存在默认的 `nacos/nacos`），不建号则
+# 口令必须与 deploy/.env 的 NACOS_PASSWORD 一致
+curl -X POST 'http://127.0.0.1:8848/nacos/v3/auth/user' \
+  -d 'username=nacos' -d 'password=<NACOS_PASSWORD>'
+# 验证（登录接口是 v3；v1 的 /nacos/v1/auth/login 在 v3.0.3 会返 500）
+curl -X POST 'http://127.0.0.1:8848/nacos/v3/auth/user/login' \
+  -d 'username=nacos' -d 'password=<NACOS_PASSWORD>'
+拿到 `accessToken` 后未登录访问 `/nacos/v1/ns/service/list` 仍应 403，才算鉴权真生效。
+删掉 `deploy/data/nacos` 等于重建环境，需要重新走一次上面的建号。
 
 **宿主机端口避让**：本机 6379 / 8443 已被其他项目容器占用，因此做了两处偏移——
 
@@ -268,8 +281,8 @@ Redis 同样默认 `requirepass`；签名/互信密钥与口令仍仅适用于�
 
 | 用途                | 地址                                                             |
 | ------------------- | ---------------------------------------------------------------- |
-| Nacos 控制台        | http://localhost:8849/（Nacos 3 独立控制台；服务 API 仍为 8848） |
-| Sentinel Dashboard  | http://localhost:8858（sentinel/sentinel）                       |
+| Nacos 控制台        | http://localhost:8849/（需登录；服务 API 仍为 8848）             |
+| Sentinel Dashboard  | http://localhost:8858（admin，口令见 `deploy/.env`）             |
 | RocketMQ Dashboard  | http://localhost:9878                                            |
 | Seata（TC）事务端口 | localhost:8091（当前镜像不提供旧版 7091 控制台）                 |
 | RustFS Console      | http://localhost:9001                                            |

@@ -17,11 +17,15 @@ services:
       - JVM_XMS=256m
       - JVM_XMX=512m
       - JVM_XMN=128m
-      - NACOS_AUTH_ENABLE=false
-      # Nacos 3 的启动脚本始终要求这三项；默认值仅用于本地，生产必须覆盖并开启鉴权。
-      - NACOS_AUTH_TOKEN=${NACOS_AUTH_TOKEN:-bmFidS1sb2NhbC1kZXYtb25seS1uYWNvcy1zaWduaW5nLWtleQ==}
-      - NACOS_AUTH_IDENTITY_KEY=${NACOS_AUTH_IDENTITY_KEY:-nabu-local}
-      - NACOS_AUTH_IDENTITY_VALUE=${NACOS_AUTH_IDENTITY_VALUE:-nabu-local-dev-only}
+      # 鉴权总开关：镜像的 docker-startup.sh 会把它翻译成 -Dnacos.core.auth.enabled。
+      # 默认打开；只有要临时绕过时（如首次改内置 nacos 账号口令）才用 shell 变量覆盖成 false。
+      - NACOS_AUTH_ENABLE=${NACOS_AUTH_ENABLE:-true}
+      # Nacos 3 的启动脚本始终要求这三项（缺失直接 exit 255，与是否开鉴权无关）。
+      # 这里刻意不给默认值：仓库内一旦留示例值，新环境照模板留空就会静默用公开签名密钥启动，
+      # 所以改成 fail-fast，缺键时在 up 阶段就报错，而不是等容器 exit 255。
+      - NACOS_AUTH_TOKEN=${NACOS_AUTH_TOKEN:?deploy/.env 未配置 NACOS_AUTH_TOKEN}
+      - NACOS_AUTH_IDENTITY_KEY=${NACOS_AUTH_IDENTITY_KEY:?deploy/.env 未配置}
+      - NACOS_AUTH_IDENTITY_VALUE=${NACOS_AUTH_IDENTITY_VALUE:?deploy/.env 未配置}
       - PREFER_HOST_MODE=hostname
     ports:
       - "8848:8848"
@@ -156,6 +160,10 @@ services:
       - SEATA_REGISTRY_NACOS_GROUP=SEATA_GROUP
       - SEATA_REGISTRY_NACOS_APPLICATION=seata-server
       - SEATA_REGISTRY_NACOS_CLUSTER=default
+      # Nacos 开鉴权后 TC 注册也要带账号。RegistryNacosProperties 只有 username/password，
+      # 没有 auth 前缀；写成 SEATA_REGISTRY_NACOS_AUTH_* 会被 relaxed binding 静默忽略。
+      - SEATA_REGISTRY_NACOS_USERNAME=${NACOS_USERNAME:-nacos}
+      - SEATA_REGISTRY_NACOS_PASSWORD=${NACOS_PASSWORD:?deploy/.env 未配置}
       # 本地事务参数使用文件配置，不依赖尚未导入 Nacos 的配置项。
       - SEATA_CONFIG_TYPE=file
     volumes:

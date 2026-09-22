@@ -38,6 +38,9 @@ services:
       # 本地允许分组启动；缺失的 RPC 提供者仍会在调用时报告不可用。
       - DUBBO_CONSUMER_CHECK=${DUBBO_CONSUMER_CHECK:-false}
       - NACOS_ADDRESS=${NACOS_ADDRESS}
+      # Nacos 已开鉴权，注册与取配置必须带账号。
+      - NACOS_USERNAME=${NACOS_USERNAME:-nacos}
+      - NACOS_PASSWORD=${NACOS_PASSWORD:?deploy/.env 未配置}
       - SENTINEL_DASHBOARD=${SENTINEL_DASHBOARD}
       - SEATA_ADDRESS=${SEATA_ADDRESS}
       - ROCKETMQ_NAMESRV=${ROCKETMQ_NAMESRV}
@@ -81,6 +84,9 @@ services:
       # 本地允许分组启动；缺失的 RPC 提供者仍会在调用时报告不可用。
       - DUBBO_CONSUMER_CHECK=${DUBBO_CONSUMER_CHECK:-false}
       - NACOS_ADDRESS=${NACOS_ADDRESS}
+      # Nacos 已开鉴权，注册与取配置必须带账号。
+      - NACOS_USERNAME=${NACOS_USERNAME:-nacos}
+      - NACOS_PASSWORD=${NACOS_PASSWORD:?deploy/.env 未配置}
       - SENTINEL_DASHBOARD=${SENTINEL_DASHBOARD}
       - REDIS_HOST=${REDIS_HOST}
       - REDIS_PORT=${REDIS_PORT}
@@ -114,6 +120,9 @@ services:
       # 本地允许分组启动；缺失的 RPC 提供者仍会在调用时报告不可用。
       - DUBBO_CONSUMER_CHECK=${DUBBO_CONSUMER_CHECK:-false}
       - NACOS_ADDRESS=${NACOS_ADDRESS}
+      # Nacos 已开鉴权，注册与取配置必须带账号。
+      - NACOS_USERNAME=${NACOS_USERNAME:-nacos}
+      - NACOS_PASSWORD=${NACOS_PASSWORD:?deploy/.env 未配置}
       - SENTINEL_DASHBOARD=${SENTINEL_DASHBOARD}
       - SEATA_ADDRESS=${SEATA_ADDRESS}
       - ROCKETMQ_NAMESRV=${ROCKETMQ_NAMESRV}
@@ -161,6 +170,9 @@ services:
       # 本地允许分组启动；缺失的 RPC 提供者仍会在调用时报告不可用。
       - DUBBO_CONSUMER_CHECK=${DUBBO_CONSUMER_CHECK:-false}
       - NACOS_ADDRESS=${NACOS_ADDRESS}
+      # Nacos 已开鉴权，注册与取配置必须带账号。
+      - NACOS_USERNAME=${NACOS_USERNAME:-nacos}
+      - NACOS_PASSWORD=${NACOS_PASSWORD:?deploy/.env 未配置}
       - SENTINEL_DASHBOARD=${SENTINEL_DASHBOARD}
       - ROCKETMQ_NAMESRV=${ROCKETMQ_NAMESRV}
       - REDIS_HOST=${REDIS_HOST}
@@ -199,6 +211,9 @@ services:
       # 本地允许分组启动；缺失的 RPC 提供者仍会在调用时报告不可用。
       - DUBBO_CONSUMER_CHECK=${DUBBO_CONSUMER_CHECK:-false}
       - NACOS_ADDRESS=${NACOS_ADDRESS}
+      # Nacos 已开鉴权，注册与取配置必须带账号。
+      - NACOS_USERNAME=${NACOS_USERNAME:-nacos}
+      - NACOS_PASSWORD=${NACOS_PASSWORD:?deploy/.env 未配置}
       - SENTINEL_DASHBOARD=${SENTINEL_DASHBOARD}
       - ROCKETMQ_NAMESRV=${ROCKETMQ_NAMESRV}
       - MYSQL_NOTIFY_HOST=${MYSQL_NOTIFY_HOST}
@@ -237,6 +252,9 @@ services:
       # 本地允许分组启动；缺失的 RPC 提供者仍会在调用时报告不可用。
       - DUBBO_CONSUMER_CHECK=${DUBBO_CONSUMER_CHECK:-false}
       - NACOS_ADDRESS=${NACOS_ADDRESS}
+      # Nacos 已开鉴权，注册与取配置必须带账号。
+      - NACOS_USERNAME=${NACOS_USERNAME:-nacos}
+      - NACOS_PASSWORD=${NACOS_PASSWORD:?deploy/.env 未配置}
       - SENTINEL_DASHBOARD=${SENTINEL_DASHBOARD}
       - ROCKETMQ_NAMESRV=${ROCKETMQ_NAMESRV}
       - ELASTICSEARCH_URIS=${ELASTICSEARCH_URIS}
@@ -272,6 +290,9 @@ services:
       # 本地允许分组启动；缺失的 RPC 提供者仍会在调用时报告不可用。
       - DUBBO_CONSUMER_CHECK=${DUBBO_CONSUMER_CHECK:-false}
       - NACOS_ADDRESS=${NACOS_ADDRESS}
+      # Nacos 已开鉴权，注册与取配置必须带账号。
+      - NACOS_USERNAME=${NACOS_USERNAME:-nacos}
+      - NACOS_PASSWORD=${NACOS_PASSWORD:?deploy/.env 未配置}
       - SENTINEL_DASHBOARD=${SENTINEL_DASHBOARD}
       - MYSQL_FILE_HOST=${MYSQL_FILE_HOST}
       - MYSQL_FILE_PORT=${MYSQL_FILE_PORT}
@@ -311,6 +332,9 @@ services:
       # 本地允许分组启动；缺失的 RPC 提供者仍会在调用时报告不可用。
       - DUBBO_CONSUMER_CHECK=${DUBBO_CONSUMER_CHECK:-false}
       - NACOS_ADDRESS=${NACOS_ADDRESS}
+      # Nacos 已开鉴权，注册与取配置必须带账号。
+      - NACOS_USERNAME=${NACOS_USERNAME:-nacos}
+      - NACOS_PASSWORD=${NACOS_PASSWORD:?deploy/.env 未配置}
       - SENTINEL_DASHBOARD=${SENTINEL_DASHBOARD}
       - ROCKETMQ_NAMESRV=${ROCKETMQ_NAMESRV}
       - MYSQL_MODERATION_HOST=${MYSQL_MODERATION_HOST}
@@ -349,6 +373,9 @@ services:
       # 本地允许分组启动；缺失的 RPC 提供者仍会在调用时报告不可用。
       - DUBBO_CONSUMER_CHECK=${DUBBO_CONSUMER_CHECK:-false}
       - NACOS_ADDRESS=${NACOS_ADDRESS}
+      # Nacos 已开鉴权，注册与取配置必须带账号。
+      - NACOS_USERNAME=${NACOS_USERNAME:-nacos}
+      - NACOS_PASSWORD=${NACOS_PASSWORD:?deploy/.env 未配置}
       - SENTINEL_DASHBOARD=${SENTINEL_DASHBOARD}
       - REDIS_HOST=${REDIS_HOST}
       - REDIS_PORT=${REDIS_PORT}
@@ -382,6 +409,9 @@ services:
       # 本地允许分组启动；缺失的 RPC 提供者仍会在调用时报告不可用。
       - DUBBO_CONSUMER_CHECK=${DUBBO_CONSUMER_CHECK:-false}
       - NACOS_ADDRESS=${NACOS_ADDRESS}
+      # Nacos 已开鉴权，注册与取配置必须带账号。
+      - NACOS_USERNAME=${NACOS_USERNAME:-nacos}
+      - NACOS_PASSWORD=${NACOS_PASSWORD:?deploy/.env 未配置}
       - SENTINEL_DASHBOARD=${SENTINEL_DASHBOARD}
     # 有健康检查的依赖等待 service_healthy；其余依赖等待进程启动。
     # 分组联调时只拉起本服务声明的依赖。
@@ -409,6 +439,9 @@ services:
       # 本地允许分组启动；缺失的 RPC 提供者仍会在调用时报告不可用。
       - DUBBO_CONSUMER_CHECK=${DUBBO_CONSUMER_CHECK:-false}
       - NACOS_ADDRESS=${NACOS_ADDRESS}
+      # Nacos 已开鉴权，注册与取配置必须带账号。
+      - NACOS_USERNAME=${NACOS_USERNAME:-nacos}
+      - NACOS_PASSWORD=${NACOS_PASSWORD:?deploy/.env 未配置}
       - SENTINEL_DASHBOARD=${SENTINEL_DASHBOARD}
     # 有健康检查的依赖等待 service_healthy；其余依赖等待进程启动。
     # 分组联调时只拉起本服务声明的依赖。
@@ -436,6 +469,9 @@ services:
       # 本地允许分组启动；缺失的 RPC 提供者仍会在调用时报告不可用。
       - DUBBO_CONSUMER_CHECK=${DUBBO_CONSUMER_CHECK:-false}
       - NACOS_ADDRESS=${NACOS_ADDRESS}
+      # Nacos 已开鉴权，注册与取配置必须带账号。
+      - NACOS_USERNAME=${NACOS_USERNAME:-nacos}
+      - NACOS_PASSWORD=${NACOS_PASSWORD:?deploy/.env 未配置}
       - SENTINEL_DASHBOARD=${SENTINEL_DASHBOARD}
     # 有健康检查的依赖等待 service_healthy；其余依赖等待进程启动。
     # 分组联调时只拉起本服务声明的依赖。

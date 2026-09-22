@@ -13,11 +13,15 @@ spring:
     nacos:
       config:
         server-addr: ${NACOS_ADDRESS:127.0.0.1}:8848
+        username: ${NACOS_USERNAME:nacos}
+        password: ${NACOS_PASSWORD}
         namespace: ${NACOS_NAMESPACE:}
         group: DEFAULT_GROUP
         file-extension: yaml
       discovery:
         server-addr: ${NACOS_ADDRESS:127.0.0.1}:8848
+        username: ${NACOS_USERNAME:nacos}
+        password: ${NACOS_PASSWORD}
         namespace: ${NACOS_NAMESPACE:}
     sentinel:
       transport:
@@ -44,11 +48,15 @@ dubbo:
     register-mode: instance
     parameters:
       namespace: ${NACOS_NAMESPACE:}
+      username: ${NACOS_USERNAME:nacos}
+      password: ${NACOS_PASSWORD}
 
 nabu:
   jwt:
-    # 生产环境务必替换为随机生成的高强度密钥，并从 Nacos 配置中心/环境变量注入，不要硬编码在此文件里。
-    secret: ${JWT_SECRET:nabu-learning-project-jwt-secret-key-please-change-me-in-prod-0123456789}
+    # 无兜底值：密钥只能由环境变量注入（容器侧 compose.app.yml，
+    # 裸机侧 source deploy/scripts/dev-env.sh）。仓库内不留默认密钥：
+    # 留着会让漏配时静默用一个已入仓历史公开的弱密钥签发 token。
+    secret: ${JWT_SECRET}
     access-token-expire-minutes: 30
     refresh-token-expire-days: 7
 
