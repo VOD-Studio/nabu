@@ -9,6 +9,7 @@ import org.springframework.validation.BindException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 /**
  * 全局异常处理器。各可运行的 web 应用（nabu-web / nabu-admin-service / 暴露 Actuator 的各 *-service）
@@ -32,6 +33,12 @@ public class GlobalExceptionHandler {
     public Result<Void> handleValidException(Exception ex) {
         log.warn("参数校验异常: {}", ex.getMessage());
         return Result.failure(ResultCode.PARAM_INVALID.getCode(), ex.getMessage());
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    public Result<Void> handleNoResourceFound(NoResourceFoundException ex) {
+        log.warn("资源未找到: {}", ex.getMessage());
+        return Result.failure(ResultCode.NOT_FOUND);
     }
 
     @ExceptionHandler(Exception.class)
