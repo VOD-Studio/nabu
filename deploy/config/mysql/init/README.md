@@ -9,7 +9,10 @@
 如需启用，可以在这里新增 `01-canal-user.sql`，内容类似：
 
 ```sql
-CREATE USER IF NOT EXISTS 'canal'@'%' IDENTIFIED BY 'canal';
+-- 把 <CANAL_PASSWORD> 换成与 deploy/.env 里 MYSQL_FORUM_PASSWORD 一致的值，
+-- 并同步改 deploy/config/canal/instance.properties 的 canal.instance.dbPassword；
+-- 三处必须一致，仓库内的跟踪文件不写实际口令。
+CREATE USER IF NOT EXISTS 'canal'@'%' IDENTIFIED BY '<CANAL_PASSWORD>';
 GRANT SELECT, REPLICATION SLAVE, REPLICATION CLIENT ON *.* TO 'canal'@'%';
 FLUSH PRIVILEGES;
 ```

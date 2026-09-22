@@ -53,7 +53,12 @@ services:
     ports:
       - "8858:8858"
     environment:
-      - JAVA_OPTS=-Dserver.port=8858 -Dsentinel.dashboard.auth.username=sentinel -Dsentinel.dashboard.auth.password=sentinel
+      # 注意：不能用 JAVA_OPTS 传 -D 参数，该镜像 entrypoint 不读 JAVA_OPTS；
+      # 且镜像内属性前缀是 auth.*（见 app.jar 的 application.properties），
+      # 不是上游文档里的 sentinel.dashboard.auth.*。这里用 Spring 宽松绑定的环境变量覆盖。
+      - AUTH_USERNAME=admin
+      # 面板登录口令只放 deploy/.env，仓库内不留明文。
+      - AUTH_PASSWORD=${SENTINEL_AUTH_PASSWORD:?deploy/.env 未配置}
     networks: [nabu-net]
 
   # ---------------------------------------------------------------------------------

@@ -13,6 +13,6 @@ if [[ ! -f $_envfile ]]; then
   return 1
 fi
 while IFS='=' read -r _key _value; do
-  [[ $_key =~ (PASSWORD|USERNAME|ACCESS_KEY|SECRET_KEY)$ ]] && export "$_key=$_value"
+  [[ $_key =~ (PASSWORD|USERNAME|ACCESS_KEY|SECRET(_KEY)?)$ ]] && export "$_key=$_value"
 done < <(grep -vE '^[[:space:]]*(#|$)' "$_envfile")
 unset _src _deploy _envfile _key _value

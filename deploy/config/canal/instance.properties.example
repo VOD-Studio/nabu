@@ -10,8 +10,10 @@ canal.instance.master.address=mysql-forum:3306
 
 # 连接 MySQL 的账号（需要 SELECT + REPLICATION SLAVE + REPLICATION CLIENT 权限，
 # 见 deploy/config/mysql/init/README.md）
+# 口令：canal-server 在 compose 里没挂本目录、也不做环境变量插值（.example 要靠
+# README.md 里 CREATE USER 的口令保持一致（三处必须一致）。
 canal.instance.dbUsername=canal
-canal.instance.dbPassword=canal
+canal.instance.dbPassword=change-me-canal
 
 # 只订阅 nabu_forum 库的 t_topic 表（本项目 Canal 链路只用来同步帖子到 Elasticsearch）
 canal.instance.filter.regex=nabu_forum\.t_topic

@@ -48,7 +48,8 @@ spring:
       stat-view-servlet:
         enabled: true
         login-username: admin
-        login-password: admin123
+        # 监控台口令只放 deploy/.env（compose.app.yml 注入）；裸机跑先 source dev-env.sh。
+        login-password: ${DRUID_MONITOR_PASSWORD}
   data:
     redis:
       host: ${REDIS_HOST:127.0.0.1}

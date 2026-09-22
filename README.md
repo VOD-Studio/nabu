@@ -126,7 +126,7 @@ nabu/
 | nabu-prometheus   | prometheus:latest       | 9090           | 指标抓取与存储                                               |
 | nabu-loki         | loki:3.4.2              | 3100           | 日志聚合                                                     |
 | nabu-tempo        | tempo                   | 3200           | 链路追踪                                                     |
-| nabu-grafana      | grafana:latest          | 3000           | 可视化面板（默认 admin/admin123）                            |
+| nabu-grafana      | grafana:latest          | 3000           | 可视化面板（admin，口令见 `deploy/.env`）                    |
 
 ### 应用（compose.app.yml）
 
@@ -160,12 +160,15 @@ cd deploy
 > 环境变量放在 `deploy/.env`（含口令，已被 `.gitignore` 忽略、不入库）。仓库只提交模板
 > `deploy/.env.example`；首次运行脚本时若没有 `.env` 会自动复制模板生成，请按需修改口令。
 > 模板里 `NACOS_PASSWORD` / `REDIS_PASSWORD` / `JWT_SECRET` 与三个面板口令
+> （`SENTINEL_AUTH_PASSWORD` / `GRAFANA_ADMIN_PASSWORD` / `DRUID_MONITOR_PASSWORD`）都是必填项：
+> compose 用 `${VAR:?}` 做了 fail-fast，不改直接 `up` 会在解析阶段就报错（而不是静默退回弱口令）。
 > 另外 `NACOS_AUTH_TOKEN` / `NACOS_AUTH_IDENTITY_KEY` / `NACOS_AUTH_IDENTITY_VALUE` 模板里故意留空，
+> 但它们是服务端签名密钥、留空会静默回落到仓库里公开的 dev 默认值，请务必自己生成（见模板注释）。
 > 已经起过 MySQL（存在 `deploy/data/mysql-*`）时不要用模板覆盖现有 `.env`。
 
-各服务 `application.yml` 里的地址默认值就是 `127.0.0.1:<容器映射端口>`，但**数据库与对象存储的口令
+各服务 `application.yml` 里的地址默认值就是 `127.0.0.1:<容器映射端口>`，但**凭据（含 JWT 密钥）
 没有默认值**，只能由 `deploy/.env` 提供。裸机跑之前先导出凭据（只导出 `*_PASSWORD` / `*_USERNAME` /
-`RUSTFS_ACCESS_KEY` / `RUSTFS_SECRET_KEY`，不导出 `*_HOST`，所以容器地址默认值照常生效）：
+`*_ACCESS_KEY` / `*_SECRET(_KEY)`（含 `JWT_SECRET`），不导出 `*_HOST`，所以容器地址默认值照常生效）：
 
 ```bash
 source deploy/scripts/dev-env.sh
@@ -287,7 +290,7 @@ Redis 同样默认 `requirepass`；签名/互信密钥与口令仍仅适用于�
 | Seata（TC）事务端口 | localhost:8091（当前镜像不提供旧版 7091 控制台）                 |
 | RustFS Console      | http://localhost:9001                                            |
 | Elasticsearch       | http://localhost:9200                                            |
-| Grafana             | http://localhost:3000（admin/admin123）                          |
+| Grafana             | http://localhost:3000（admin，口令见 `deploy/.env`）             |
 | Prometheus          | http://localhost:9090                                            |
 | Higress Console     | http://localhost:8001                                            |
 

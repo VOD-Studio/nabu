@@ -62,7 +62,8 @@ services:
     restart: unless-stopped
     environment:
       - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=admin123
+      # 管理员口令只放 deploy/.env，仓库内不留明文。
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:?deploy/.env 未配置}
       - GF_AUTH_ANONYMOUS_ENABLED=false
     volumes:
       - ./config/observability/grafana/provisioning:/etc/grafana/provisioning

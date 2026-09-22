@@ -52,6 +52,8 @@ services:
       - MYSQL_USER_PORT=${MYSQL_USER_PORT}
       - MYSQL_USER_USERNAME=${MYSQL_USER_USERNAME}
       - MYSQL_USER_PASSWORD=${MYSQL_USER_PASSWORD}
+      # Druid 监控台口令；application.yml 里无兜底，漏配则容器起不来。
+      - DRUID_MONITOR_PASSWORD=${DRUID_MONITOR_PASSWORD:?deploy/.env 未配置}
     # 有健康检查的依赖等待 service_healthy；其余依赖等待进程启动。
     # 分组联调时只拉起本服务声明的依赖。
     depends_on:
@@ -92,6 +94,8 @@ services:
       - REDIS_PORT=${REDIS_PORT}
       # Redis 已开 requirepass，不传则占位符解析失败。
       - REDIS_PASSWORD=${REDIS_PASSWORD:?deploy/.env 未配置}
+      # JWT HMAC 密钥：仅 auth-service 读取。
+      - JWT_SECRET=${JWT_SECRET:?deploy/.env 未配置}
     # 有健康检查的依赖等待 service_healthy；其余依赖等待进程启动。
     # 分组联调时只拉起本服务声明的依赖。
     depends_on:
@@ -134,6 +138,8 @@ services:
       - MYSQL_FORUM_PORT=${MYSQL_FORUM_PORT}
       - MYSQL_FORUM_USERNAME=${MYSQL_FORUM_USERNAME}
       - MYSQL_FORUM_PASSWORD=${MYSQL_FORUM_PASSWORD}
+      # Druid 监控台口令；application.yml 里无兜底，漏配则容器起不来。
+      - DRUID_MONITOR_PASSWORD=${DRUID_MONITOR_PASSWORD:?deploy/.env 未配置}
     # 有健康检查的依赖等待 service_healthy；其余依赖等待进程启动。
     # 分组联调时只拉起本服务声明的依赖。
     depends_on:
@@ -220,6 +226,8 @@ services:
       - MYSQL_NOTIFY_PORT=${MYSQL_NOTIFY_PORT}
       - MYSQL_NOTIFY_USERNAME=${MYSQL_NOTIFY_USERNAME}
       - MYSQL_NOTIFY_PASSWORD=${MYSQL_NOTIFY_PASSWORD}
+      # Druid 监控台口令；application.yml 里无兜底，漏配则容器起不来。
+      - DRUID_MONITOR_PASSWORD=${DRUID_MONITOR_PASSWORD:?deploy/.env 未配置}
     # 有健康检查的依赖等待 service_healthy；其余依赖等待进程启动。
     # 分组联调时只拉起本服务声明的依赖。
     depends_on:
@@ -298,6 +306,8 @@ services:
       - MYSQL_FILE_PORT=${MYSQL_FILE_PORT}
       - MYSQL_FILE_USERNAME=${MYSQL_FILE_USERNAME}
       - MYSQL_FILE_PASSWORD=${MYSQL_FILE_PASSWORD}
+      # Druid 监控台口令；application.yml 里无兜底，漏配则容器起不来。
+      - DRUID_MONITOR_PASSWORD=${DRUID_MONITOR_PASSWORD:?deploy/.env 未配置}
       - RUSTFS_ENDPOINT=${RUSTFS_ENDPOINT}
       - RUSTFS_ACCESS_KEY=${RUSTFS_ACCESS_KEY}
       - RUSTFS_SECRET_KEY=${RUSTFS_SECRET_KEY}
@@ -341,6 +351,8 @@ services:
       - MYSQL_MODERATION_PORT=${MYSQL_MODERATION_PORT}
       - MYSQL_MODERATION_USERNAME=${MYSQL_MODERATION_USERNAME}
       - MYSQL_MODERATION_PASSWORD=${MYSQL_MODERATION_PASSWORD}
+      # Druid 监控台口令；application.yml 里无兜底，漏配则容器起不来。
+      - DRUID_MONITOR_PASSWORD=${DRUID_MONITOR_PASSWORD:?deploy/.env 未配置}
     # 有健康检查的依赖等待 service_healthy；其余依赖等待进程启动。
     # 分组联调时只拉起本服务声明的依赖。
     depends_on:
