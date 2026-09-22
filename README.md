@@ -7,33 +7,33 @@ CDC 同步、全文搜索、对象存储、网关、可观测性……
 
 ## 技术栈与版本线（2026-09 校验过 Maven Central / Docker Hub 的真实可用版本）
 
-| 分类 | 技术 | 版本 |
-|---|---|---|
-| JVM | Java | 21 LTS |
-| 基础框架 | Spring Boot | 3.5.6 |
-| 微服务生态 | Spring Cloud | 2025.0.0 |
-| 微服务生态 | Spring Cloud Alibaba | 2025.0.0.0 |
-| RPC | Apache Dubbo | 3.3.6（Triple 协议） |
-| 注册/配置中心 | Nacos | 3.0.3 |
-| 限流熔断 | Sentinel | 1.8.9（随 SCA BOM 管理） |
-| 分布式事务 | Seata | 2.5.0（groupId 已迁移为 `org.apache.seata`） |
-| 消息队列 | RocketMQ | 5.3.1（Server）/ rocketmq-spring-boot-starter 2.3.5 |
-| 数据库 | MySQL | 8.4 LTS |
-| ORM | MyBatis | mybatis-spring-boot-starter 3.0.4 |
-| 连接池 | Druid | 1.2.28（druid-spring-boot-3-starter） |
-| 缓存 | Redis 7 + JetCache | 2.7.9 |
-| CDC | Canal | server latest（本地演示，简化消息结构） |
-| 搜索 | Elasticsearch | 8.18.1 |
-| 对象存储 | RustFS（S3 兼容） | 1.0.0（镜像 digest 固定），AWS SDK for Java v2 (2.29.52) 接入 |
-| JSON | Fastjson2 | 2.0.65 |
-| 上下文传播 | TTL (transmittable-thread-local) | 2.14.5 |
-| 网关 | Higress | Docker All-in-One latest |
-| 鉴权 | Spring Security Crypto (BCrypt) + JWT | jjwt 0.12.7 |
-| 调度 | Spring @Scheduled（本地替代 SchedulerX，见 nabu-task-service 注释） |
-| 可观测性 | OpenTelemetry Collector + Prometheus + Grafana + Loki + Tempo |
-| DB 迁移 | Flyway |
-| 测试 | JUnit + Mockito + Testcontainers 1.20.6 |
-| 部署 | Docker Compose（拆分为多个 compose 文件） |
+| 分类          | 技术                                                                | 版本                                                          |
+| ------------- | ------------------------------------------------------------------- | ------------------------------------------------------------- |
+| JVM           | Java                                                                | 21 LTS                                                        |
+| 基础框架      | Spring Boot                                                         | 3.5.6                                                         |
+| 微服务生态    | Spring Cloud                                                        | 2025.0.0                                                      |
+| 微服务生态    | Spring Cloud Alibaba                                                | 2025.0.0.0                                                    |
+| RPC           | Apache Dubbo                                                        | 3.3.6（Triple 协议）                                          |
+| 注册/配置中心 | Nacos                                                               | 3.0.3                                                         |
+| 限流熔断      | Sentinel                                                            | 1.8.9（随 SCA BOM 管理）                                      |
+| 分布式事务    | Seata                                                               | 2.5.0（groupId 已迁移为 `org.apache.seata`）                  |
+| 消息队列      | RocketMQ                                                            | 5.3.1（Server）/ rocketmq-spring-boot-starter 2.3.5           |
+| 数据库        | MySQL                                                               | 8.4 LTS                                                       |
+| ORM           | MyBatis                                                             | mybatis-spring-boot-starter 3.0.4                             |
+| 连接池        | Druid                                                               | 1.2.28（druid-spring-boot-3-starter）                         |
+| 缓存          | Redis 7 + JetCache                                                  | 2.7.9                                                         |
+| CDC           | Canal                                                               | server latest（本地演示，简化消息结构）                       |
+| 搜索          | Elasticsearch                                                       | 8.18.1                                                        |
+| 对象存储      | RustFS（S3 兼容）                                                   | 1.0.0（镜像 digest 固定），AWS SDK for Java v2 (2.29.52) 接入 |
+| JSON          | Fastjson2                                                           | 2.0.65                                                        |
+| 上下文传播    | TTL (transmittable-thread-local)                                    | 2.14.5                                                        |
+| 网关          | Higress                                                             | Docker All-in-One latest                                      |
+| 鉴权          | Spring Security Crypto (BCrypt) + JWT                               | jjwt 0.12.7                                                   |
+| 调度          | Spring @Scheduled（本地替代 SchedulerX，见 nabu-task-service 注释） |
+| 可观测性      | OpenTelemetry Collector + Prometheus + Grafana + Loki + Tempo       |
+| DB 迁移       | Flyway                                                              |
+| 测试          | JUnit + Mockito + Testcontainers 1.20.6                             |
+| 部署          | Docker Compose（拆分为多个 compose 文件）                           |
 
 ## 模块划分
 
@@ -61,20 +61,20 @@ nabu/
 
 ## 服务端口一览
 
-| 服务 | HTTP 端口 | Dubbo(Triple) 端口 |
-|---|---|---|
-| nabu-web | 18080 | — |
-| nabu-user-service | 18081 | 28081 |
-| nabu-auth-service | 18082 | 28082 |
-| nabu-forum-service | 18083 | 28083 |
-| nabu-social-service | 18084 | 28084 |
-| nabu-notify-service | 18085 | 28085 |
-| nabu-search-service | 18086 | 28086 |
-| nabu-file-service | 18087 | 28087 |
-| nabu-moderation-service | 18088 | 28088 |
-| nabu-stat-service | 18089 | 28089 |
-| nabu-task-service | 18090 | 28090 |
-| nabu-admin-service | 18091 | 28091 |
+| 服务                    | HTTP 端口 | Dubbo(Triple) 端口 |
+| ----------------------- | --------- | ------------------ |
+| nabu-web                | 18080     | —                  |
+| nabu-user-service       | 18081     | 28081              |
+| nabu-auth-service       | 18082     | 28082              |
+| nabu-forum-service      | 18083     | 28083              |
+| nabu-social-service     | 18084     | 28084              |
+| nabu-notify-service     | 18085     | 28085              |
+| nabu-search-service     | 18086     | 28086              |
+| nabu-file-service       | 18087     | 28087              |
+| nabu-moderation-service | 18088     | 28088              |
+| nabu-stat-service       | 18089     | 28089              |
+| nabu-task-service       | 18090     | 28090              |
+| nabu-admin-service      | 18091     | 28091              |
 
 ## 编译
 
@@ -113,10 +113,10 @@ docker compose --env-file .env -f compose.yml -f compose.middleware.yml up -d na
 
 **宿主机端口避让**：本机 6379 / 8443 已被其他项目容器占用，因此做了两处偏移——
 
-| 组件 | 原始映射 | 现映射 | 影响 |
-|---|---|---|---|
-| nabu-redis | `6379:6379` | `6380:6379` | 裸机默认端口同步改为 6380；容器网络内仍是 `redis:6379`（见 `.env`） |
-| nabu-higress | `8443:8443` | `18443:8443` | 容器内监听端口不变，只是宿主访问 HTTPS 走 18443 |
+| 组件         | 原始映射    | 现映射       | 影响                                                                |
+| ------------ | ----------- | ------------ | ------------------------------------------------------------------- |
+| nabu-redis   | `6379:6379` | `6380:6379`  | 裸机默认端口同步改为 6380；容器网络内仍是 `redis:6379`（见 `.env`） |
+| nabu-higress | `8443:8443` | `18443:8443` | 容器内监听端口不变，只是宿主访问 HTTPS 走 18443                     |
 
 如果换台机器这两个端口是空的，把映射改回 `6379:6379` / `8443:8443`，
 同时把各 `application.yml` 里的 `${REDIS_PORT:6380}` 默认值改回 `6379` 即可。
@@ -195,17 +195,17 @@ RustFS 的四个目录在本地共用 Docker 虚拟磁盘，因此只在此开�
 
 ### 3. 关键管理入口
 
-| 用途 | 地址 |
-|---|---|
-| Nacos 控制台 | http://localhost:8849/（Nacos 3 独立控制台；服务 API 仍为 8848） |
-| Sentinel Dashboard | http://localhost:8858（sentinel/sentinel） |
-| RocketMQ Dashboard | http://localhost:9878 |
-| Seata（TC）事务端口 | localhost:8091（当前镜像不提供旧版 7091 控制台） |
-| RustFS Console | http://localhost:9001 |
-| Elasticsearch | http://localhost:9200 |
-| Grafana | http://localhost:3000（admin/admin123） |
-| Prometheus | http://localhost:9090 |
-| Higress Console | http://localhost:8001 |
+| 用途                | 地址                                                             |
+| ------------------- | ---------------------------------------------------------------- |
+| Nacos 控制台        | http://localhost:8849/（Nacos 3 独立控制台；服务 API 仍为 8848） |
+| Sentinel Dashboard  | http://localhost:8858（sentinel/sentinel）                       |
+| RocketMQ Dashboard  | http://localhost:9878                                            |
+| Seata（TC）事务端口 | localhost:8091（当前镜像不提供旧版 7091 控制台）                 |
+| RustFS Console      | http://localhost:9001                                            |
+| Elasticsearch       | http://localhost:9200                                            |
+| Grafana             | http://localhost:3000（admin/admin123）                          |
+| Prometheus          | http://localhost:9090                                            |
+| Higress Console     | http://localhost:8001                                            |
 
 ## 核心链路导航
 
