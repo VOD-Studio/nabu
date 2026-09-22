@@ -8,6 +8,7 @@
 #   ./deploy/scripts/up.sh all nabu-user-service nabu-web  # 只起指定服务及其依赖，适合小内存机器
 set -euo pipefail
 cd "$(dirname "$0")/.."
+source "$(dirname "$0")/ensure-env.sh"
 
 FILES=(-f compose.yml -f compose.infrastructure.yml)
 

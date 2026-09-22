@@ -157,6 +157,10 @@ cd deploy
 ./scripts/up.sh obs   # 拉起 MySQL/Redis/ES/RustFS + Nacos/Sentinel/RocketMQ/Seata/Canal/Higress + 可观测性栈
 ```
 
+> 环境变量放在 `deploy/.env`（含口令，已被 `.gitignore` 忽略、不入库）。仓库只提交模板
+> `deploy/.env.example`；首次运行脚本时若没有 `.env` 会自动复制模板生成，请按需修改口令。
+> 已经起过 MySQL（存在 `deploy/data/mysql-*`）时不要用模板覆盖现有 `.env`。
+
 各服务 `application.yml` 里的默认值就是 `127.0.0.1:<容器映射端口>`，裸机跑
 `mvn -pl nabu-user-service spring-boot:run` 之类命令即可直接连上。
 
@@ -276,7 +280,8 @@ RustFS 的四个目录在本地共用 Docker 虚拟磁盘，因此只在此开�
 ## 数据库连接约定
 
 各服务使用独立 MySQL 实例（本地端口 3307/3308/3310/3311/3312，容器内统一 3306），
-账号密码默认均为 `nabu` / `nabu123456`（仅用于本地/开发环境，生产环境务必更换）。
+账号统一 `nabu`，口令由 `deploy/.env` 提供（模板里是 `change-me-nabu` 占位符）。
+这些口令仅限本地/开发环境，生产环境务必更换，且不要把填好真实口令的 `.env` 提交进仓库。
 
 ## 说明
 
